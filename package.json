@@ -1,6 +1,6 @@
 {
   "name": "srcm",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Generic Code Modification tools",
   "main": "dist/index.js",
   "scripts": {
