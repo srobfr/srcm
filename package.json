@@ -1,6 +1,6 @@
 {
   "name": "srcm",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Generic Code Modification tools",
   "main": "dist/index.js",
   "scripts": {
@@ -23,7 +23,8 @@
     "url": "git+https://github.com/srobfr/srcm.git"
   },
   "keywords": [
-    "parser", "codemod"
+    "parser",
+    "codemod"
   ],
   "bugs": {
     "url": "https://github.com/srobfr/srcm/issues"
