@@ -8,7 +8,7 @@ install: ## Install dependancies
 
 build: ## Builds the distributable code
 	-rm -rf dist
-	./node_modules/.bin/tsc -d
+	./node_modules/.bin/tsc
 
 test: ## Runs tests
 	./node_modules/.bin/mocha -r ts-node/register $(shell find src -name *.test.ts)

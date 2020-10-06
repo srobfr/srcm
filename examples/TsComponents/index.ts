@@ -1,4 +1,4 @@
-import codemod, {parseFile} from "../../src/codemod/codemod";
+import {codemod, parseFile} from "../../src/codemod/codemod";
 import {classBody, file, jsDoc} from "./grammar";
 
 codemod(async () => {

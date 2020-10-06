@@ -1,24 +1,18 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "target": "es2018",
-    "outDir": "dist",
-    "rootDir": ".",
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "lib": [
-      "dom",
-      "es5",
-      "scripthost",
-      "es2015.collection",
-      "es2015.iterable",
-      "es2018"
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "lib": ["es2017", "es7", "es6", "dom"],
+        "target": "es6",
+        "declaration": true,
+        "outDir": "dist",
+        "rootDir": "src",
+        "esModuleInterop": true
+    },
+    "exclude": [
+        "node_modules",
+        "dist",
+        "src/**/*.test.ts",
+        "examples/**/*.ts"
     ]
-  },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "src/**/*.test.ts",
-    "examples/**/*.ts"
-  ]
 }

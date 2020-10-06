@@ -1,18 +1,28 @@
 import File from "../files/File";
 import {GrammarDefinition} from "../grammar/GrammarDefinitions";
-import {parse} from "../../index";
+import {parse} from "../index";
 import Node from "../dom/Node";
 
 /**
  * Codemod tool
  * This handles command-line arguments to save or diff files
  */
-export default function codemod(func: () => Promise<Array<ParsedFile>>) {
+export function codemod(func: () => Promise<Array<ParsedFile>>) {
     const showXml = process.argv.find(a => a === '-x');
     const apply = process.argv.find(a => a === '-a');
     const help = process.argv.find(a => a === '-?') || process.argv.find(a => a === '-h');
     if (help) {
-        console.log(`SRCM`);
+        console.log(`SRCM - A generic code modification tool
+Copyright Simon Robert 2020
+Licensed under the MIT license. The Software is provided “as is” without warranty of any kind.
+I am not responsible of any source code loss in case of wrong manipulation (use a versioning system !).
+
+Usage :
+${process.argv[0]} ${process.argv[1]} : Shows the unified diff of the modification, without applying it.
+        By default, the "diff" command is used to generate the diff. Use the DIFFCMD env var to customize this.
+ -a : Writes the modifications to disk
+ -h|-? : Prints this help message
+`);
         return;
     }
 
