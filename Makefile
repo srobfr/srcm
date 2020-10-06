@@ -12,7 +12,7 @@ build: ## Builds the distributable code
 
 publish-patch: install build test
 	npm version patch
-	git push origin "$(git rev-parse --abbrev-ref HEAD)" "$@" --tags
+	git push origin "$$(git rev-parse --abbrev-ref HEAD)" --tags
 	npm publish
 
 test: ## Runs tests
