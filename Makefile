@@ -10,5 +10,10 @@ build: ## Builds the distributable code
 	-rm -rf dist
 	./node_modules/.bin/tsc
 
+publish-patch: install build test
+	npm version patch
+	git push origin "$(git rev-parse --abbrev-ref HEAD)" "$@" --tags
+	npm publish
+
 test: ## Runs tests
 	./node_modules/.bin/mocha -r ts-node/register $(shell find src -name *.test.ts)
