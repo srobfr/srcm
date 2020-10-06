@@ -23,7 +23,7 @@
     "url": "git+https://github.com/srobfr/srcm.git"
   },
   "keywords": [
-    "parser"
+    "parser", "codemod"
   ],
   "bugs": {
     "url": "https://github.com/srobfr/srcm/issues"
