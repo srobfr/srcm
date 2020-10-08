@@ -106,7 +106,7 @@ export default class Parser {
         for (const nextContext of nextContexts) {
             if (nextContext.actionType === ActionTypeEnum.REDUCE && isTerminalGrammarDefinition(nextContext.grammar)) {
                 const matchedLength = this.terminalsMatcher.match(nextContext);
-                if (matchedLength !== null) nextContext.matchedLength = matchedLength;
+                if (matchedLength) nextContext.matchedLength = matchedLength;
                 else {
                     // Syntax error
                     Parser.onParseError(nextContext, errors);

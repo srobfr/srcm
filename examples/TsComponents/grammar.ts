@@ -1,4 +1,4 @@
-import {multiple, optional, or, tag} from "../../src/grammar/grammarDefinitionsHelpers";
+import {multiple, optional, or, tag} from "../../src";
 
 export const ident = /^[a-z_][\w_]*/i;
 export const w = /^[ \n\s]+/;

@@ -48,7 +48,7 @@ ${process.argv[0]} ${process.argv[1]} : Shows the unified diff of the modificati
     })().catch(err => console.error(err));
 }
 
-interface ParsedFile extends File {
+export interface ParsedFile extends File {
     $: Node
 }
 
