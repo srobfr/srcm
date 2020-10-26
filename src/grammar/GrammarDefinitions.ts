@@ -8,7 +8,7 @@ export interface TaggableGrammarDefinition {
     tag?: string,
 }
 
-export interface RegExpGrammarDefinition extends RegExp {
+export interface RegExpGrammarDefinition extends RegExp, TaggableGrammarDefinition {
 }
 
 export function isRegExpGrammarDefinition(g: GrammarDefinition): g is RegExpGrammarDefinition {
@@ -21,7 +21,7 @@ export function isTerminalGrammarDefinition(g: GrammarDefinition): g is Terminal
     return (isStringGrammarDefinition(g) || isRegExpGrammarDefinition(g));
 }
 
-export interface SequenceGrammarDefinition extends Array<GrammarDefinition> {
+export interface SequenceGrammarDefinition extends Array<GrammarDefinition>, TaggableGrammarDefinition {
 }
 
 export function isSequenceGrammarDefinition(g: GrammarDefinition): g is SequenceGrammarDefinition {
