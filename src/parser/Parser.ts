@@ -1,8 +1,7 @@
-import {GrammarDefinition, isTerminalGrammarDefinition, TaggableGrammarDefinition} from "../grammar/GrammarDefinitions";
+import {GrammarDefinition, isTerminalGrammarDefinition, Node, TaggableGrammarDefinition} from "..";
 import Context from "./Context";
 import ActionsGraphAnalyzer, {ActionTypeEnum} from "./ActionsGraphAnalyzer";
 import TerminalsMatcher from "./TerminalsMatcher";
-import Node from "../dom/Node";
 
 type ParseErrors = { expected: Set<GrammarDefinition>, offset: number };
 

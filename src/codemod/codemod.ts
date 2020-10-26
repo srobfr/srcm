@@ -1,7 +1,7 @@
 import File from "../files/File";
 import {GrammarDefinition} from "../grammar/GrammarDefinitions";
 import {parse} from "../index";
-import Node from "../dom/Node";
+import {Node} from "../dom/Node";
 
 /**
  * Codemod tool
@@ -52,10 +52,10 @@ export interface ParsedFile extends File {
     $: Node
 }
 
-export async function parseFile(grammar: GrammarDefinition, path: string): Promise<ParsedFile> {
+export async function parseFile(grammar: GrammarDefinition, path: string, defaultCode: string): Promise<ParsedFile> {
     const file = new File(path) as ParsedFile;
     await file.load();
-    if (!file.content && (grammar as any).default) file.content = (grammar as any).default;
+    if (!file.content) file.content = defaultCode;
     file.$ = parse(grammar, file.content);
     return file;
 }

@@ -1,8 +1,7 @@
 /**
  * Represents a DOM node
  */
-import {GrammarDefinition, TaggableGrammarDefinition} from "../grammar/GrammarDefinitions";
-import Selection from "./Selection";
+import {GrammarDefinition, TaggableGrammarDefinition} from "..";
 import Parser from "../parser/Parser";
 
 const xmlEscapeMap = {
@@ -21,7 +20,7 @@ export interface NodeContructorArgs {
     parser: Parser,
 }
 
-export default class Node {
+export class Node {
     public readonly grammar: GrammarDefinition;
     public parent: Node | null = null;
     public prev: Node | null = null;
@@ -68,9 +67,9 @@ export default class Node {
     public prepend(node: Node): Node {
         node.remove();
         if (this.children.length > 0) {
-            let prevNode = this.children[this.children.length - 1];
-            prevNode.next = node;
-            node.prev = prevNode;
+            let nextNode = this.children[0];
+            nextNode.prev = node;
+            node.next = nextNode;
         }
         node.parent = this;
         this.children.unshift(node);
@@ -101,8 +100,8 @@ export default class Node {
         node.remove();
         node.prev = this;
         node.next = this.next;
-        node.parent = this.parent;
         if (node.next) node.next.prev = node;
+        node.parent = this.parent;
         this.next = node;
         if (this.parent) {
             let i = this.parent.children.indexOf(this);
@@ -156,27 +155,4 @@ export default class Node {
         if (childXml === '') return `<${tag}/>`;
         return `<${tag}>${childXml}</${tag}>`;
     }
-
-    // Search methods
-
-    public findDirectByTag(tag: string): Selection {
-        return new Selection(this.children.filter(c => ((c.grammar as TaggableGrammarDefinition).tag === tag)));
-    }
-
-    public findOneDirectByTag(tag: string): Selection {
-        return new Selection(this.children.find(c => ((c.grammar as TaggableGrammarDefinition).tag === tag)));
-    }
-
-    public findByTag(tag: string): Selection {
-        const nodes = this.children.filter(c => ((c.grammar as TaggableGrammarDefinition).tag === tag));
-        for (const c of this.children) nodes.push(...c.findByTag(tag).nodes);
-        return new Selection(nodes);
-    }
-
-    public findByGrammar(grammar: GrammarDefinition): Selection {
-        const nodes = this.children.filter(c => (c.grammar === grammar));
-        for (const c of this.children) nodes.push(...c.findByGrammar(grammar).nodes);
-        return new Selection(nodes);
-    }
-
 }

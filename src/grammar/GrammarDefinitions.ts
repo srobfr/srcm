@@ -8,18 +8,21 @@ export interface TaggableGrammarDefinition {
     tag?: string,
 }
 
-export interface RegExpGrammarDefinition extends RegExp {}
+export interface RegExpGrammarDefinition extends RegExp {
+}
 
 export function isRegExpGrammarDefinition(g: GrammarDefinition): g is RegExpGrammarDefinition {
     return (g as RegExpGrammarDefinition) instanceof RegExp;
 }
 
 export type TerminalGrammarDefinition = StringGrammarDefinition | RegExpGrammarDefinition;
+
 export function isTerminalGrammarDefinition(g: GrammarDefinition): g is TerminalGrammarDefinition {
     return (isStringGrammarDefinition(g) || isRegExpGrammarDefinition(g));
 }
 
-export interface SequenceGrammarDefinition extends Array<GrammarDefinition> {}
+export interface SequenceGrammarDefinition extends Array<GrammarDefinition> {
+}
 
 export function isSequenceGrammarDefinition(g: GrammarDefinition): g is SequenceGrammarDefinition {
     return Array.isArray(g as SequenceGrammarDefinition);
@@ -43,6 +46,7 @@ export function isOptionalGrammarDefinition(g: GrammarDefinition): g is Optional
 
 export interface MultipleGrammarDefinition extends TaggableGrammarDefinition {
     multiple: GrammarDefinition,
+    sep?: GrammarDefinition,
 }
 
 export function isMultipleGrammarDefinition(g: GrammarDefinition): g is MultipleGrammarDefinition {
@@ -51,24 +55,21 @@ export function isMultipleGrammarDefinition(g: GrammarDefinition): g is Multiple
 
 export interface OptMulGrammarDefinition extends TaggableGrammarDefinition {
     optmul: GrammarDefinition,
+    sep?: GrammarDefinition,
 }
 
 export function isOptMulGrammarDefinition(g: GrammarDefinition): g is OptMulGrammarDefinition {
     return !!(g as OptMulGrammarDefinition).optmul;
 }
 
-
-export interface ObjectGrammarDefinition {
-    tag?: string,
-    default?: string,
-}
-
-export type GrammarDefinition =
-    StringGrammarDefinition
-    | RegExpGrammarDefinition
+export type ObjectGrammarDefinition =
+    RegExpGrammarDefinition
     | SequenceGrammarDefinition
     | OrGrammarDefinition
     | OptionalGrammarDefinition
     | MultipleGrammarDefinition
-    | OptMulGrammarDefinition
+    | OptMulGrammarDefinition;
+
+export type GrammarDefinition =
+    StringGrammarDefinition
     | ObjectGrammarDefinition;
