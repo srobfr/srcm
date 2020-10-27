@@ -62,6 +62,10 @@ export function isOptMulGrammarDefinition(g: GrammarDefinition): g is OptMulGram
     return !!(g as OptMulGrammarDefinition).optmul;
 }
 
+export function isMultipleOrOptMulGrammarDefinition(g: GrammarDefinition): g is OptMulGrammarDefinition | MultipleGrammarDefinition {
+    return isMultipleGrammarDefinition(g) || isOptMulGrammarDefinition(g);
+}
+
 export type ObjectGrammarDefinition =
     RegExpGrammarDefinition
     | SequenceGrammarDefinition

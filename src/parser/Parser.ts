@@ -13,7 +13,7 @@ export default class Parser {
     private readonly terminalsMatcher = new TerminalsMatcher();
 
     // Performances optimizations
-    private readonly maxRecursionsCount = 3;
+    private readonly maxRecursionsCount = 2;
 
     /**
      * Parses the given code using the given grammar
