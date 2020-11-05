@@ -10,7 +10,7 @@ build: ## Builds the distributable code
 	-rm -rf dist
 	./node_modules/.bin/tsc
 
-publish-patch: install build test
+publish-patch: install build test ## Publish a new version on NPM, with PATCH semver level
 	npm version patch
 	npm publish
 	git push origin "$$(git rev-parse --abbrev-ref HEAD)"
