@@ -1,7 +1,8 @@
 /**
  * Represents a DOM node
  */
-import {GrammarDefinition, TaggableGrammarDefinition} from "..";
+import {applyMap, GrammarDefinition, TaggableGrammarDefinition} from "..";
+import {isObjectGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
 
 const xmlEscapeMap = {
@@ -154,5 +155,9 @@ export class Node {
         if (tag === undefined) return childXml;
         if (childXml === '') return `<${tag}/>`;
         return `<${tag}>${childXml}</${tag}>`;
+    }
+
+    public apply(def:any) {
+        if(isObjectGrammarDefinition(this.grammar)) applyMap.get(this.grammar)(this, def);
     }
 }

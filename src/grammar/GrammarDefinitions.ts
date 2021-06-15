@@ -1,3 +1,4 @@
+
 export type StringGrammarDefinition = string;
 
 export function isStringGrammarDefinition(g: GrammarDefinition): g is StringGrammarDefinition {
@@ -74,6 +75,11 @@ export type ObjectGrammarDefinition =
     | MultipleGrammarDefinition
     | OptMulGrammarDefinition;
 
+export function isObjectGrammarDefinition(g: GrammarDefinition): g is ObjectGrammarDefinition {
+    return typeof g === 'object';
+}
+
 export type GrammarDefinition =
     StringGrammarDefinition
     | ObjectGrammarDefinition;
+

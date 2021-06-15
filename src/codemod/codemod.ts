@@ -1,6 +1,6 @@
 import File from "../files/File";
-import {GrammarDefinition} from "../grammar/GrammarDefinitions";
-import {parse} from "../index";
+import {GrammarDefinition, ObjectGrammarDefinition} from "../grammar/GrammarDefinitions";
+import {defaultsMap, parse} from "../index";
 import {Node} from "../dom/Node";
 
 /**
@@ -52,10 +52,10 @@ export interface ParsedFile extends File {
     $: Node
 }
 
-export async function parseFile(grammar: GrammarDefinition, path: string, defaultCode: string): Promise<ParsedFile> {
+export async function parseFile(grammar: GrammarDefinition, path: string, defaultCode?: string): Promise<ParsedFile> {
     const file = new File(path) as ParsedFile;
     await file.load();
-    if (!file.content) file.content = defaultCode;
+    if (!file.content) file.content = defaultCode || defaultsMap.get(grammar as ObjectGrammarDefinition) || "";
     file.$ = parse(grammar, file.content);
     return file;
 }
