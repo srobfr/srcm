@@ -3,7 +3,7 @@ import Context from "./Context";
 import ActionsGraphAnalyzer, {ActionTypeEnum} from "./ActionsGraphAnalyzer";
 import TerminalsMatcher from "./TerminalsMatcher";
 
-type ParseErrors = { expected: Set<GrammarDefinition>, offset: number };
+type ParseErrors = {expected: Set<GrammarDefinition>, offset: number;};
 
 /**
  * Generic parser
@@ -14,6 +14,7 @@ export default class Parser {
 
     // Performances optimizations
     private readonly maxRecursionsCount = 2;
+    private readonly maxContexts = 20000;
 
     /**
      * Parses the given code using the given grammar
@@ -80,7 +81,10 @@ export default class Parser {
             }
 
             // Add the new contexts
-            for (const c of nextContexts) contexts.add(c);
+            for (const c of nextContexts) {
+                if (contexts.size >= this.maxContexts) break;
+                contexts.add(c);
+            }
         }
 
         this.throwError(initialContext.code, errors);
@@ -137,9 +141,9 @@ export default class Parser {
                 let expectedStr = (
                     expected.length
                         ? "expected " + expected.map(function (expected) {
-                        if (expected === null) return "EOF";
-                        return (expected as TaggableGrammarDefinition)?.tag || expected;
-                    }).join(" or ")
+                            if (expected === null) return "EOF";
+                            return (expected as TaggableGrammarDefinition)?.tag || expected;
+                        }).join(" or ")
                         : "Grammar error."
                 );
 
