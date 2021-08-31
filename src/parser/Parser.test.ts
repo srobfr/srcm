@@ -1,12 +1,27 @@
 import Parser from "./Parser";
 import {multiple, optional, optmul, or, tag} from "../grammar/grammarDefinitionsHelpers";
-import {GrammarDefinition} from "../grammar/GrammarDefinitions";
+import {FunctionGrammarDefinition, GrammarDefinition} from "../grammar/GrammarDefinitions";
 import assert from "assert";
 
 describe('Parser', function () {
     it('regex', async function () {
         const result = new Parser().parse(/^foo/, 'foo');
         console.debug(`result = "%s"`, result.xml());
+    });
+
+    it('function', async function () {
+        const myFunc: FunctionGrammarDefinition = (code) => {
+            const m = code.match(/^(?:pl)?op/);
+            return m ? m[0].length : null;
+        };
+        myFunc.getPossibleValues = () => ['op', 'plop'];
+
+        try {
+            const result = new Parser().parse(['f', myFunc], 'fplop');
+            console.debug(`result = "%s"`, result.xml());
+        } catch (e) {
+            console.debug(e);
+        }
     });
 
     it('string', async function () {

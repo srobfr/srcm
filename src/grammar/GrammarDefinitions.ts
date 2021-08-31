@@ -1,3 +1,4 @@
+import Context from "../parser/Context";
 
 export type StringGrammarDefinition = string;
 
@@ -16,10 +17,20 @@ export function isRegExpGrammarDefinition(g: GrammarDefinition): g is RegExpGram
     return (g as RegExpGrammarDefinition) instanceof RegExp;
 }
 
+interface FunctionGrammarDefinitionInterface extends TaggableGrammarDefinition {
+    getPossibleValues?: (code: string) => Array<string>,
+}
+
+export type FunctionGrammarDefinition = FunctionGrammarDefinitionInterface & ((code: string, context: Context) => number|null) ;
+
+export function isFunctionGrammarDefinition(g: GrammarDefinition): g is FunctionGrammarDefinition {
+    return (g as FunctionGrammarDefinition) instanceof Function;
+}
+
 export type TerminalGrammarDefinition = StringGrammarDefinition | RegExpGrammarDefinition;
 
 export function isTerminalGrammarDefinition(g: GrammarDefinition): g is TerminalGrammarDefinition {
-    return (isStringGrammarDefinition(g) || isRegExpGrammarDefinition(g));
+    return (isStringGrammarDefinition(g) || isRegExpGrammarDefinition(g) || isFunctionGrammarDefinition(g));
 }
 
 export interface SequenceGrammarDefinition extends Array<GrammarDefinition>, TaggableGrammarDefinition {
@@ -69,6 +80,7 @@ export function isMultipleOrOptMulGrammarDefinition(g: GrammarDefinition): g is 
 
 export type ObjectGrammarDefinition =
     RegExpGrammarDefinition
+    | FunctionGrammarDefinition
     | SequenceGrammarDefinition
     | OrGrammarDefinition
     | OptionalGrammarDefinition

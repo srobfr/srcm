@@ -10,6 +10,9 @@ build: install ## Builds the distributable code
 	-rm -rf dist
 	./node_modules/.bin/tsc
 
+watch: install ## Builds continuously the distributable code
+	./node_modules/.bin/tsc -w
+
 publish-patch: build test ## Publish a new version on NPM, with PATCH semver level
 	npm version patch
 	npm publish

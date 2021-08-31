@@ -1,4 +1,4 @@
-import {isRegExpGrammarDefinition, isStringGrammarDefinition, RegExpGrammarDefinition, StringGrammarDefinition} from "../grammar/GrammarDefinitions";
+import {FunctionGrammarDefinition, isFunctionGrammarDefinition, isRegExpGrammarDefinition, isStringGrammarDefinition, RegExpGrammarDefinition, StringGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Context from "./Context";
 
 export default class TerminalsMatcher {
@@ -6,6 +6,7 @@ export default class TerminalsMatcher {
         const {grammar} = context;
         if (isStringGrammarDefinition(grammar)) return TerminalsMatcher.matchString(context);
         if (isRegExpGrammarDefinition(grammar)) return TerminalsMatcher.matchRegExp(context);
+        if (isFunctionGrammarDefinition(grammar)) return TerminalsMatcher.matchFunction(context);
     }
 
     private static matchString(context: Context): number | null {
@@ -22,5 +23,11 @@ export default class TerminalsMatcher {
         if (!grammarStr.startsWith('/^')) throw new Error(`RegExp grammar definitions should start with "/^" : ${grammarStr}`);
         const m = code.substr(offset).match(grammar);
         return m && m[0].length;
+    }
+
+    private static matchFunction(context: Context): number | null {
+        const {code, offset} = context;
+        const grammar = context.grammar as FunctionGrammarDefinition;
+        return grammar(code.substr(offset), context);
     }
 }

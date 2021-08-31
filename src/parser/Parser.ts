@@ -2,8 +2,12 @@ import {GrammarDefinition, isTerminalGrammarDefinition, Node, TaggableGrammarDef
 import Context from "./Context";
 import ActionsGraphAnalyzer, {ActionTypeEnum} from "./ActionsGraphAnalyzer";
 import TerminalsMatcher from "./TerminalsMatcher";
+import {isFunctionGrammarDefinition} from "../grammar/GrammarDefinitions";
 
 type ParseErrors = {expected: Set<GrammarDefinition>, offset: number;};
+interface SyntaxError extends Error {
+    expected: Array<GrammarDefinition>,
+}
 
 /**
  * Generic parser
@@ -142,13 +146,15 @@ export default class Parser {
                     expected.length
                         ? "expected " + expected.map(function (expected) {
                             if (expected === null) return "EOF";
+                            if (isFunctionGrammarDefinition(expected) && expected.getPossibleValues) return expected.getPossibleValues(code.substr(expectedOffset)).join(' or ')
                             return (expected as TaggableGrammarDefinition)?.tag || expected;
                         }).join(" or ")
                         : "Grammar error."
                 );
 
                 let message = `Syntax error on line ${i + 1}, column ${lineOffset}:\n${line}\n${spaces}^ ${expectedStr}`;
-                throw new Error(message);
+                const e: SyntaxError = Object.assign(new Error(message), {expected});
+                throw e;
             }
             o += l;
         });
