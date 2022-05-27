@@ -52,6 +52,7 @@ export default class ActionsGraphAnalyzer {
 
             } else if (isMultipleGrammarDefinition(grammar)) {
                 possibleNextContexts.add({actionType: ActionTypeEnum.SHIFT, code, offset, grammar: grammar.multiple, previous: context, parent: context});
+
             } else if (isOptMulGrammarDefinition(grammar)) {
                 possibleNextContexts.add({actionType: ActionTypeEnum.SHIFT, code, offset, grammar: grammar.optmul, previous: context, parent: context});
                 possibleNextContexts.add({actionType: ActionTypeEnum.REDUCE, code, offset, grammar, previous: context, parent: parent, indexInParent, matchedLength: 0});
@@ -84,6 +85,7 @@ export default class ActionsGraphAnalyzer {
                                 actionType: ActionTypeEnum.SHIFT, code, offset: offset + matchedLength, grammar: (parentGrammar.multiple || parentGrammar.optmul),
                                 previous: context, parent: parent
                             }); // Next item
+
                         } else {
                             possibleNextContexts.add({
                                 actionType: ActionTypeEnum.SHIFT, code, offset: offset + matchedLength, grammar: parent.grammar.sep, previous: context, parent: parent

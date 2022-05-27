@@ -21,13 +21,13 @@ export default class TerminalsMatcher {
         const grammar = context.grammar as RegExpGrammarDefinition;
         const grammarStr = grammar.toString();
         if (!grammarStr.startsWith('/^')) throw new Error(`RegExp grammar definitions should start with "/^" : ${grammarStr}`);
-        const m = code.substr(offset).match(grammar);
+        const m = code.slice(offset).match(grammar);
         return m && m[0].length;
     }
 
     private static matchFunction(context: Context): number | null {
         const {code, offset} = context;
         const grammar = context.grammar as FunctionGrammarDefinition;
-        return grammar(code.substr(offset), context);
+        return grammar(code.slice(offset), context);
     }
 }

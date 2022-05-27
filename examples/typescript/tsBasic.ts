@@ -1,4 +1,4 @@
-import {applyMap, multiple, optional, or, tag} from "../../src";
+import {multiple, optional, or, tag} from "../../src";
 
 /** Javascript identifier (function name, var name...) */
 export const ident = /^[a-z_][\w_]*/i;
@@ -47,3 +47,12 @@ export const anything = multiple(or(
 curlyBracedBlock.push('{', optional(anything), '}');
 parenthesedBlock.push('(', optional(anything), ')');
 squaredBlock.push('[', optional(anything), ']');
+
+/** A block of recursive code with correct ([{wrapping}]) matched until semicolon */
+export const anythingUntilSemicolon = multiple(or(
+    comment,
+    curlyBracedBlock,
+    parenthesedBlock,
+    squaredBlock,
+    /^[^]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$|;)/,
+));

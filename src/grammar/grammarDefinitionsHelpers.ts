@@ -5,7 +5,6 @@ import {
     OptionalGrammarDefinition,
     OptMulGrammarDefinition,
     OrGrammarDefinition,
-    SequenceGrammarDefinition
 } from "./GrammarDefinitions";
 
 export const or = (...defs: Array<GrammarDefinition>): OrGrammarDefinition => ({or: defs});

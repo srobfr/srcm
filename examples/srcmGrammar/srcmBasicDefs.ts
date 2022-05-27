@@ -20,11 +20,13 @@ applyMap.set(srcmDefaultsMapDeclaration, ($: Node, def: {
     }
 });
 
-/** defaultsMap declaration */
+
+/** applyMap declaration */
+const applyMapFuncBody = optional(anything);
 export const srcmApplyMapDeclaration = optional([
     w,
     `applyMap.set(`, ident, `, ($: Node, def: any) => {`,
-    anything,
+    applyMapFuncBody,
     `});`,
 ]);
 applyMap.set(srcmApplyMapDeclaration, ($: Node, def: {
@@ -33,9 +35,9 @@ applyMap.set(srcmApplyMapDeclaration, ($: Node, def: {
 }) => {
     if (def.applyCode === null) $.text('');
     else {
-        if ($.text() === '') $.text(`\applyMap.set(${def.name}, ($: Node, def: any) => { });`);
+        if ($.text() === '') $.text(`\napplyMap.set(${def.name}, ($: Node, def: any) => {});`);
         if (def.name) findFirstByGrammar($, ident).text(def.name);
-        if (def.applyCode) findFirstByGrammar($, anything).text((`\n${def.applyCode.trim()}`).replace(/\n(?!\s*\n)/g, '\n    ') + "\n");
+        if (def.applyCode) findFirstByGrammar($, applyMapFuncBody).text((`\n${def.applyCode.trim()}`).replace(/\n(?!\s*\n)/g, '\n    ') + "\n");
     }
 });
 
