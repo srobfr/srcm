@@ -1,4 +1,4 @@
-import {applyMap, findFirstByGrammar, Node, optional} from "../../src";
+import {applyMap, findFirstByGrammar, Node, optional, tag} from "../../src";
 import {anything, ident, string, w} from "../typescript/tsBasic";
 
 /** defaultsMap declaration */
@@ -22,7 +22,7 @@ applyMap.set(srcmDefaultsMapDeclaration, ($: Node, def: {
 
 
 /** applyMap declaration */
-const applyMapFuncBody = optional(anything);
+const applyMapFuncBody = tag('applyMapFuncBody', optional(anything));
 export const srcmApplyMapDeclaration = optional([
     w,
     `applyMap.set(`, ident, `, ($: Node, def: any) => {`,

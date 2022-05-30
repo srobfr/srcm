@@ -11,4 +11,5 @@ applyMap.set(srcmDefs, ($: Node, def: any) => {
 export const test = multiple(foobar, w);
 applyMap.set(test, ($: Node, def: any) => {
     // TODO
+    // Test test test
 });

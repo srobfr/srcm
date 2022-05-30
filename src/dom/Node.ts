@@ -157,7 +157,7 @@ export class Node {
         return `<${tag}>${childXml}</${tag}>`;
     }
 
-    public apply(def:any) {
-        if(isObjectGrammarDefinition(this.grammar)) applyMap.get(this.grammar)(this, def);
+    public apply(def: any) {
+        if (isObjectGrammarDefinition(this.grammar)) applyMap.get(this.grammar)(this, def);
     }
 }

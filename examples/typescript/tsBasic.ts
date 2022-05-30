@@ -16,11 +16,11 @@ export const lineComment = /^\/\/ *.+(?:\n|$)/;
 export const blockComment = /^\/\*[^]*\*\//;
 
 /** A JSDoc one-line block comment */
-export const jsDocOneLineBlockComment = /^\/\*\*[^]*\*\//;
+export const jsDocOneLineBlockComment = /^\/\*\*[^]*?\*\//;
 export const comment = tag('comment', or(lineComment, jsDocOneLineBlockComment, blockComment));
 
 /** White spaces mixed with comments (speed optimization) */
-export const wc = /^(?:[ \n\s]+|\/\/ *.+(?=\n|$)|\/\*[^]*\*\/)+/;
+export const wc = /^(?:[ \n\s]+|\/\/ *.+(?=\n|$)|\/\*[^]*?\*\/)+/;
 
 /** Strings */
 export const quotedString = /^'(\\'|[^'\\]+|\\)*'/;
@@ -42,7 +42,7 @@ export const anything = multiple(or(
     curlyBracedBlock,
     parenthesedBlock,
     squaredBlock,
-    /^[^]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$)/,    
+    /^[^})\]]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$)/,
 ));
 curlyBracedBlock.push('{', optional(anything), '}');
 parenthesedBlock.push('(', optional(anything), ')');
@@ -54,5 +54,5 @@ export const anythingUntilSemicolon = multiple(or(
     curlyBracedBlock,
     parenthesedBlock,
     squaredBlock,
-    /^[^]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$|;)/,
+    /^[^})\];]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$|;)/,
 ));

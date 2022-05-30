@@ -1,11 +1,13 @@
-import {applyMap, defaultsMap, findByGrammar, findFirstByPath, multiple, Node, optmul} from "../../src";
+import {applyMap, defaultsMap, findByGrammar, findFirstByGrammar, findFirstByPath, multiple, Node, optmul, optmulApply, tag} from "../../src";
 import {anythingUntilSemicolon, ident, jsDocOneLineBlockComment, ow, w} from "../typescript/tsBasic";
 import {srcmApplyMapDeclaration, srcmDefaultsMapDeclaration} from "./srcmBasicDefs";
+
+export const srcmDefName = [ident];
 
 /** A srcm grammar definition */
 export const srcmDef = [
     jsDocOneLineBlockComment, w,
-    "export const ", ident, ow, '=', ow, anythingUntilSemicolon, ';',
+    "export const ", srcmDefName, ow, '=', ow, anythingUntilSemicolon, ';',
     srcmDefaultsMapDeclaration,
     srcmApplyMapDeclaration,
 ];
@@ -26,23 +28,22 @@ applyMap.set(srcmDef, ($: Node, def: SrcmDefDefType) => {
     if (def.applyCode !== undefined || (def.name !== findFirstByPath($, [srcmApplyMapDeclaration, ident])?.text())) $.children[10].apply({name: $.children[3].text(), applyCode: def.applyCode || null});
 });
 
-export const srcmDefs = [optmul(srcmDef, w), ow];
+export const srcmDefsSeparator = [w];
+defaultsMap.set(srcmDefsSeparator, `\n\n`);
+export const srcmDefs = optmul(srcmDef, srcmDefsSeparator);
 applyMap.set(srcmDefs, ($: Node, def: Array<SrcmDefDefType>) => {
     // Typical case of a list of items identified by a name
-    const $defsByName = Object.fromEntries(findByGrammar($, srcmDef).map($sub => [$sub.children[3].text(), $sub]));
-    for (const subDef of def) {
-        if ($defsByName[subDef.name]) {
-            if (subDef.delete) {
-                // Delete it
-                // TODO
-            } else {
-                // Update it
-                $defsByName[subDef.name].apply(subDef);
-            }
-        } else {
-            // Insert it
-            // TODO
-        }
-    }
+    optmulApply(
+        $, def,
+        ($$, subDef) => findFirstByGrammar($$, srcmDefName).text().localeCompare(subDef.name) // Lexicographic order
+    );
 });
 
+export const srcmDefsFile = [
+    optmul(/^import .+?;[\n\s]*/),
+    srcmDefs,
+    ow
+];
+applyMap.set(srcmDefsFile, ($: Node, def: Array<SrcmDefDefType>) => {
+    $.children[1].apply(def);
+});
