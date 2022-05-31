@@ -7,7 +7,7 @@ export const srcmDefName = [ident];
 /** A srcm grammar definition */
 export const srcmDef = [
     jsDocOneLineBlockComment, w,
-    "export const ", srcmDefName, ow, '=', ow, anythingUntilSemicolon, ';',
+    "export const ", srcmDefName, ow, '=', ow, [/^[^ ]/, anythingUntilSemicolon], ';',
     srcmDefaultsMapDeclaration,
     srcmApplyMapDeclaration,
 ];
@@ -30,6 +30,7 @@ applyMap.set(srcmDef, ($: Node, def: SrcmDefDefType) => {
 
 export const srcmDefsSeparator = [w];
 defaultsMap.set(srcmDefsSeparator, `\n\n`);
+
 export const srcmDefs = optmul(srcmDef, srcmDefsSeparator);
 applyMap.set(srcmDefs, ($: Node, def: Array<SrcmDefDefType>) => {
     // Typical case of a list of items identified by a name

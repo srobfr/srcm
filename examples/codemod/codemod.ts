@@ -1,4 +1,3 @@
-import {defaultsMap, findFirstByGrammar} from "../../src";
 import {codemod, parseFile} from "../../src/codemod/codemod";
 import {srcmDefsFile} from "../srcmGrammar/srcmDefDef";
 
@@ -9,21 +8,17 @@ import {srcmDefsFile} from "../srcmGrammar/srcmDefDef";
  * ./node_modules/.bin/ts-node examples/codemod/codemod.ts
  */
 codemod(async () => {
-    const sampleFile = await parseFile(srcmDefsFile, `${__dirname}/foo.ts`);
+    const sampleFile = await parseFile(srcmDefsFile, `${__dirname}/php.ts`, '');
 
     sampleFile.$.apply([
-        {
-            name: "srcmDefs",
-            desc: `A typescript file containing list of srcm test`,
-            def: `multiple(srcmDef, w)`,
-            applyCode: `// TODO`,
-            // default: `"foooooo"`,
-            delete: true,
-        },
-        {
-            name: "test", desc: `A test definition. This desc has been generated on ${new Date().toLocaleString()}`
-        },
-        {name: "test2", desc: `A new test definition. This desc has been generated on ${new Date().toLocaleString()}`}
+        {name: "w", desc: `A white space`, def: '/^[ \\n\\s]+/'},
+        {name: "ow", desc: `An optional white space`, def: `/^[ \\n\\s]*/`},
+        {name: "ident", desc: `An identifier, like a function name, etc.`, def: `/^[a-z_][\\w_]*/i`},
+        {name: "lineComment", desc: `A line comment, starting with '//'`, def: `/^\\/\\/ *.+(?:\\n|$)/`},
+        {name: "blockComment", desc: `A block comment`, def: `/^\\/\\*[^]*\\*\\//`},
+        {name: "phpDocOneLineBlockComment", desc: `A one-line PHPDoc block comment`, def: `/^\\/\\*\\*[^]*?\\*\\//`},
+        {name: "comment", desc: `A comment`, def: `or(lineComment, phpDocOneLineBlockComment, blockComment)`},
+        {name: "wc", desc: `White spaces mixed with comments (speed optimization)`, def: `/^(?:[ \\n\\s]+|\\/\\/ *.+(?=\\n|$)|\\/\\*[^]*?\\*\\/)+/`},
     ]);
 
     return [sampleFile];

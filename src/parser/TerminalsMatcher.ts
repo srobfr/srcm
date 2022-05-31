@@ -2,6 +2,8 @@ import {FunctionGrammarDefinition, isFunctionGrammarDefinition, isRegExpGrammarD
 import Context from "./Context";
 
 export default class TerminalsMatcher {
+    private static alreadyCheckedRegExps = new WeakSet();
+
     public match(context: Context): number | null {
         const {grammar} = context;
         if (isStringGrammarDefinition(grammar)) return TerminalsMatcher.matchString(context);
@@ -19,8 +21,13 @@ export default class TerminalsMatcher {
     private static matchRegExp(context: Context): number | null {
         const {code, offset} = context;
         const grammar = context.grammar as RegExpGrammarDefinition;
-        const grammarStr = grammar.toString();
-        if (!grammarStr.startsWith('/^')) throw new Error(`RegExp grammar definitions should start with "/^" : ${grammarStr}`);
+        if (!TerminalsMatcher.alreadyCheckedRegExps.has(grammar)) {
+            const grammarStr = grammar.toString();
+            if (!grammarStr.startsWith('/^')) throw new Error(`RegExp grammar definitions should start with "/^" : ${grammarStr}`);
+            if (''.match(grammar)) throw new Error(`RegExp grammar definitions should not match an empty string, please use optional() instead : ${grammarStr}`);
+            TerminalsMatcher.alreadyCheckedRegExps.add(grammar);
+        }
+
         const m = code.slice(offset).match(grammar);
         return m && m[0].length;
     }

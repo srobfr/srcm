@@ -1,4 +1,5 @@
 import {multiple, optional, or, tag} from "../../src";
+import {tsRegex} from "./tsRegex";
 
 /** Javascript identifier (function name, var name...) */
 export const ident = /^[a-z_][\w_]*/i;
@@ -7,10 +8,10 @@ export const ident = /^[a-z_][\w_]*/i;
 export const w = /^[ \n\s]+/;
 
 /** an optional white space */
-export const ow = /^[ \n\s]*/;
+export const ow = optional(w);
 
 /** A line comment, starting with '//' */
-export const lineComment = /^\/\/ *.+(?:\n|$)/;
+export const lineComment = /^\/\/ *.+(?=\n|$)/;
 
 /** A block comment */
 export const blockComment = /^\/\*[^]*\*\//;
@@ -42,7 +43,8 @@ export const anything = multiple(or(
     curlyBracedBlock,
     parenthesedBlock,
     squaredBlock,
-    /^[^})\]]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$)/,
+    /^[^})\]\\]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$|\\)/,
+    /^\\./,
 ));
 curlyBracedBlock.push('{', optional(anything), '}');
 parenthesedBlock.push('(', optional(anything), ')');
@@ -54,5 +56,6 @@ export const anythingUntilSemicolon = multiple(or(
     curlyBracedBlock,
     parenthesedBlock,
     squaredBlock,
-    /^[^})\];]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$|;)/,
+    /^[^})\]\\;]+?(?=\/\*|\/\/|{|}|\(|\)|\[|\]|$|\\|;)/,
+    /^\\./,
 ));

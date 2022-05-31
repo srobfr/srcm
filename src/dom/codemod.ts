@@ -5,6 +5,13 @@ import {Node} from "./Node";
 
 const parser = new Parser();
 
+/**
+ * Helper to apply a definition to an optmul node
+ * TODO
+ * @param $
+ * @param def
+ * @param compare
+ */
 export function optmulApply<defT extends Array<{delete?: boolean}>>(
     $: Node,
     def: defT,
@@ -64,9 +71,5 @@ export function optmulApply<defT extends Array<{delete?: boolean}>>(
             $prev.after($node);
             if ($sep) $prev.after($sep);
         }
-
-        console.debug({subDef, $prev: ($prev?.xml()), $found: ($found?.xml())});
-
-        // TODO
     }
 }
