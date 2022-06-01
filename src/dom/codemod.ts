@@ -1,16 +1,13 @@
-import {defaultsMap, getDefault, GrammarDefinition, ObjectGrammarDefinition} from "..";
+import {getDefault} from "..";
 import {isOptMulGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
 import {Node} from "./Node";
 
-const parser = new Parser();
-
 /**
  * Helper to apply a definition to an optmul node
- * TODO
- * @param $
- * @param def
- * @param compare
+ * @param $ The root node, using a optmul() grammar
+ * @param def The definition to apply
+ * @param compare Nodes comparison function which allows to find the existing node or decide where to insert the new node.
  */
 export function optmulApply<defT extends Array<{delete?: boolean}>>(
     $: Node,
@@ -57,6 +54,7 @@ export function optmulApply<defT extends Array<{delete?: boolean}>>(
         }
 
         // Create
+        const parser = new Parser();
         const $node = parser.parse(subGrammar, getDefault(subGrammar));
         $node.apply(subDef);
 
