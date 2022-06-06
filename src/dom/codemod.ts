@@ -1,5 +1,5 @@
 import {getDefault} from "..";
-import {isOptMulGrammarDefinition} from "../grammar/GrammarDefinitions";
+import {isOptionalGrammarDefinition, isOptMulGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
 import {Node} from "./Node";
 
@@ -69,5 +69,22 @@ export function optmulApply<defT extends Array<{delete?: boolean}>>(
             $prev.after($node);
             if ($sep) $prev.after($sep);
         }
+    }
+}
+
+/**
+ * Helper to apply a definition to an optional node
+ * @param $ The root node, using a optional() grammar
+ * @param def The definition to apply
+ */
+export function optionalApply<defT extends {delete?: boolean} | null>(
+    $: Node,
+    def: defT
+) {
+    if (!isOptionalGrammarDefinition($.grammar)) throw new Error(`Not an opional grammar definition : ${$.grammar}`);
+    if (def === null || def.delete) $.text('');
+    else {
+        if ($.children.length === 0) $.text(getDefault($.grammar.optional))
+        $.children[0].apply(def);
     }
 }

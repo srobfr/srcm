@@ -71,7 +71,7 @@ export interface OptMulGrammarDefinition extends TaggableGrammarDefinition {
 }
 
 export function isOptMulGrammarDefinition(g: GrammarDefinition): g is OptMulGrammarDefinition {
-    return !!(g as OptMulGrammarDefinition).optmul;
+    return !!(g as OptMulGrammarDefinition)?.optmul;
 }
 
 export function isMultipleOrOptMulGrammarDefinition(g: GrammarDefinition): g is OptMulGrammarDefinition | MultipleGrammarDefinition {

@@ -28,7 +28,10 @@ ${process.argv[0]} ${process.argv[1]} : Shows the unified diff of the modificati
 
     (async () => {
         const files = await func();
-        for (const f of files) f.content = f.$.text();
+        for (const f of files) {
+            if (!(f instanceof File)) throw new Error(`Codemod can only handle instances of File, returned value is ${f}`);
+            f.content = f.$?.text() ?? f.content;
+        }
 
         if (showXml) {
             console.log(files.map(f => `=== ${f.path} ===\n${f.$.xml()}`).join(''));

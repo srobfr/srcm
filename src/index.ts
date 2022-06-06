@@ -1,3 +1,4 @@
+import {inspect} from 'util';
 import {Node} from "./dom/Node";
 import {GrammarDefinition, ObjectGrammarDefinition} from "./grammar/GrammarDefinitions";
 import Parser from "./parser/Parser";
@@ -18,5 +19,5 @@ export function getDefault(grammar: GrammarDefinition): string {
     if (typeof grammar === 'string') return grammar;
     if (defaultsMap.has(grammar)) return defaultsMap.get(grammar);
     if (Array.isArray(grammar)) return grammar.map(g => getDefault(g)).join('');
-    throw new Error(`No default provided for grammar ${grammar}`);
+    throw new Error(`No default provided for grammar ${inspect(grammar)}`);
 }

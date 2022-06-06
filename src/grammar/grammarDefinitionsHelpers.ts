@@ -1,3 +1,4 @@
+import {defaultsMap} from "..";
 import {
     GrammarDefinition,
     MultipleGrammarDefinition,
@@ -16,5 +17,10 @@ export const tag = (tagName: string, def: GrammarDefinition): ObjectGrammarDefin
     const r = [def] as ObjectGrammarDefinition;
     r.tag = tagName;
     return r;
+};
+
+export const withDefault = (def: ObjectGrammarDefinition, defaultCode: string): ObjectGrammarDefinition => {
+    defaultsMap.set(def, defaultCode);
+    return def;
 };
 

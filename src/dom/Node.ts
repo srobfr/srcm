@@ -1,9 +1,11 @@
 /**
  * Represents a DOM node
  */
+import {inspect} from "util";
 import {applyMap, GrammarDefinition, TaggableGrammarDefinition} from "..";
-import {isObjectGrammarDefinition} from "../grammar/GrammarDefinitions";
+import {isObjectGrammarDefinition, isOptionalGrammarDefinition, isOrGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
+import {optionalApply} from "./codemod";
 
 const xmlEscapeMap = {
     '<': '&lt;',
@@ -158,6 +160,14 @@ export class Node {
     }
 
     public apply(def: any) {
-        if (isObjectGrammarDefinition(this.grammar)) applyMap.get(this.grammar)(this, def);
+        if (!isObjectGrammarDefinition(this.grammar)) throw new Error(`apply() called on non-object-grammar node`);
+
+        (
+            applyMap.get(this.grammar)
+            ?? (
+                isOptionalGrammarDefinition(this.grammar) ? ($, def) => optionalApply($, def)
+                    : ($, def) => {throw new Error(`No apply() implementation found for ${inspect(this.grammar)}`);}
+            )
+        )(this, def);
     }
 }
