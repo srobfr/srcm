@@ -140,6 +140,7 @@ export class Node {
 
     public text(text?: string) {
         if (text === undefined) return this.textContent || this.children.map(c => c.text()).join('');
+        if (typeof text !== 'string') throw new Error(`Non-string argument given to text()`);
         const $newNode = this.parser.parse(this.grammar, text);
         this.children = $newNode.children;
         this.textContent = $newNode.textContent;
