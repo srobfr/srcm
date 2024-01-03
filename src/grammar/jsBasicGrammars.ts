@@ -1,4 +1,7 @@
-import { multiple, optional, or, tag } from "../../src";
+/**
+ * Useful basic grammars components (based on javascript syntax)
+ */
+import { multiple, optional, or, tag } from "./grammarDefinitionsHelpers";
 
 /** Javascript identifier (function name, var name...) */
 export const ident = /^[a-z_][\w_]*/i;

@@ -1,4 +1,4 @@
-import {getDefault} from "..";
+import { getDefault } from "../codemod/maps";
 import {isOptionalGrammarDefinition, isOptMulGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
 import {Node} from "./Node";

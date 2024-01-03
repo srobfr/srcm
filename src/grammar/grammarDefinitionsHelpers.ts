@@ -1,4 +1,4 @@
-import {defaultsMap} from "..";
+import { defaultsMap } from "../codemod/maps";
 import {
     GrammarDefinition,
     MultipleGrammarDefinition,
@@ -24,3 +24,5 @@ export const withDefault = (def: ObjectGrammarDefinition, defaultCode: string): 
     return def;
 };
 
+/** Handles a template litteral as a sequence : seq`foo${a}` => ["foo", a] */
+export const seq = (strings, ...args) => strings.map((s, i) => [s, args[i] ?? null]).flat().filter(s => s !== null && s !== "")

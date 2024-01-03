@@ -2,10 +2,10 @@
  * Represents a DOM node
  */
 import {inspect} from "util";
-import {applyMap, GrammarDefinition, TaggableGrammarDefinition} from "..";
-import {isObjectGrammarDefinition, isOptionalGrammarDefinition, isOrGrammarDefinition} from "../grammar/GrammarDefinitions";
+import {GrammarDefinition, TaggableGrammarDefinition, isObjectGrammarDefinition, isOptionalGrammarDefinition, isOrGrammarDefinition} from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
 import {optionalApply} from "./codemod";
+import { applyMap } from "../codemod/maps";
 
 const xmlEscapeMap = {
     '<': '&lt;',
