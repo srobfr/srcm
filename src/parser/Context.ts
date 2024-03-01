@@ -11,4 +11,3 @@ export default interface Context {
     parent: Context | null,
     indexInParent?: number | null
 }
-

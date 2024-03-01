@@ -20,11 +20,12 @@ See the available examples in the [examples/](examples/) folder.
 
 **Simon Robert**
 
-+ [github/srobfr](https://github.com/srobfr)
-+ [twitter/srobfr](https://twitter.com/srobfr)
++ [srob.fr](https://srob.fr)
++ [Github](https://github.com/srobfr)
++ [Mastodon](https://mas.to/@srob)
 
 ## License
 
-Copyright © [Simon Robert](https://github.com/srobfr)
+Copyright © [Simon Robert](https://srob.fr)
 
 Released under the MIT license.

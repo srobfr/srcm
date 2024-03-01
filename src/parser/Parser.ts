@@ -89,6 +89,10 @@ export default class Parser {
                 if (contexts.size >= this.maxContexts) break;
                 contexts.add(c);
             }
+
+            // Filter out doubles
+            // TODO
+            console.log(contexts);
         }
 
         this.throwError(initialContext.code, errors);

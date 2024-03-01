@@ -59,8 +59,8 @@ describe('Parser', function () {
         console.debug(`result = "%s"`, result.xml());
     });
 
-    it('Ambiguous grammar', async function () {
-        this.skip(); // TODO
+    it.only('Ambiguous grammar', async function () {
+        // this.skip(); // TODO
         const number = /^\d+/;
         const ow = optional(/^ +/);
         const expr = or();
@@ -68,7 +68,7 @@ describe('Parser', function () {
         const multiplication = tag('m', [expr, ow, '*', ow, expr]);
         const parenthesedExpr = ['(', ow, expr, ow, ')'];
 
-        expr.or.push(parenthesedExpr, multiplication, addition, number);
+        expr.or.push(number, parenthesedExpr, multiplication, addition);
 
         const result = new Parser().parse(expr, "3*(1+2)+3");
         assert.strictEqual(result.xml(), `<a><m>3*(<a>1+2</a>)</m>+3</a>`);

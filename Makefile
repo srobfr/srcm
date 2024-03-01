@@ -11,9 +11,11 @@ build: node_modules
 watch: node_modules
 	./node_modules/.bin/tsc -w
 
-## Publish a new version on NPM, with PATCH semver level
-publish-patch: build test
-	npm version patch
+BUMP_LEVEL ?= patch
+
+## Publish a new version on NPM, with $BUMP_LEVEL semver level
+publish: build test
+	npm version "$(BUMP_LEVEL)"
 	npm publish
 	git push origin "$$(git rev-parse --abbrev-ref HEAD)"
 	git push origin --tags
