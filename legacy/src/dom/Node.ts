@@ -1,11 +1,11 @@
 /**
  * Represents a DOM node
  */
-import {inspect} from "util";
-import {applyMap, GrammarDefinition, TaggableGrammarDefinition} from "..";
-import {isObjectGrammarDefinition, isOptionalGrammarDefinition, isOrGrammarDefinition} from "../grammar/GrammarDefinitions";
+import { inspect } from "util";
+import { applyMap, GrammarDefinition, TaggableGrammarDefinition } from "..";
+import { isObjectGrammarDefinition, isOptionalGrammarDefinition, isOrGrammarDefinition } from "../grammar/GrammarDefinitions";
 import Parser from "../parser/Parser";
-import {optionalApply} from "./codemod";
+import { optionalApply } from "./codemod";
 
 const xmlEscapeMap = {
     '<': '&lt;',
@@ -167,7 +167,7 @@ export class Node {
             applyMap.get(this.grammar)
             ?? (
                 isOptionalGrammarDefinition(this.grammar) ? ($, def) => optionalApply($, def)
-                    : ($, def) => {throw new Error(`No apply() implementation found for ${inspect(this.grammar)}`);}
+                    : ($, def) => { throw new Error(`No apply() implementation found for ${inspect(this.grammar)}`); }
             )
         )(this, def);
     }

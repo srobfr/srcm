@@ -1,162 +1,211 @@
-import {GrammarDefinition, isTerminalGrammarDefinition, Node, TaggableGrammarDefinition} from "..";
-import Context from "./Context";
-import ActionsGraphAnalyzer, {ActionTypeEnum} from "./ActionsGraphAnalyzer";
-import TerminalsMatcher from "./TerminalsMatcher";
-import {isFunctionGrammarDefinition} from "../grammar/GrammarDefinitions";
+import { Grammar, isChoiceGrammar, isRegExpGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
+import { RuntimeAdapter } from "../runtimes/types.ts";
+import buildCache from "../utils/cache.ts";
+import memoize from "../utils/memoize.ts";
+import GrammarAnalyzer from "./GrammarAnalyzer.ts";
+import inspectContext from "./inspectContext.ts";
+import { Action, ActionType, Context, ParseError } from "./types.ts";
 
-type ParseErrors = {expected: Set<GrammarDefinition>, offset: number;};
-interface SyntaxError extends Error {
-    expected: Array<GrammarDefinition>,
-}
+class SyntaxError extends Error { name = "SyntaxError"; }
 
-/**
- * Generic parser
- */
 export default class Parser {
-    private readonly actionsGraphAnalyzer = new ActionsGraphAnalyzer();
-    private readonly terminalsMatcher = new TerminalsMatcher();
+  constructor(
+    private readonly runtime: RuntimeAdapter,
+    private readonly grammarAnalyzer: GrammarAnalyzer,
+  ) { }
 
-    // Performances optimizations
-    private readonly maxRecursionsCount = 2;
-    private readonly maxContexts = 20000;
+  public parse = this.#parse.bind(this);
 
-    /**
-     * Parses the given code using the given grammar
-     */
-    public parse(grammar: GrammarDefinition, code: string): Node {
-        const finalContext = this.processContexts({actionType: ActionTypeEnum.START, code, offset: 0, grammar: grammar, previous: null, parent: null});
-        return this.createDomFromContext(finalContext);
-    }
+  /** Parses code against a given grammar */
+  #parse(code: string, grammar: Grammar) {
+    const { inspect } = this.runtime;
 
-    private createDomFromContext(context: Context): Node {
-        let c = context.previous;
-        let node: Node = null;
+    /** Used to optimize contexts forest by keeping only the first context matching the (grammar, offset, matchedCharsCount) tuple */
+    const firstContextByPreviousGrammarMatchedCharsCountCache = buildCache();
 
-        while (c !== null) {
-            if (c.actionType === ActionTypeEnum.REDUCE) {
-                const n = new Node({
-                    grammar: c.grammar,
-                    ...isTerminalGrammarDefinition(c.grammar) && {textContent: c.code.substr(c.offset, c.matchedLength)},
-                    parser: this,
+    // Analyze the root grammar to extract the required data for bottom-up parsing
+    const nextPossibleActionsByLastGrammar = this.grammarAnalyzer.analyzeGrammar(grammar);
+
+    // console.log(inspect({ nextPossibleActionsByLastGrammar })) // SROB
+
+    const matchTerminal = memoize((offset: number, grammar: Grammar): number => {
+      const remainingCode = code.substring(offset);
+      let matchedCharsCount: number | undefined;
+
+      if (isStringGrammar(grammar)) {
+        matchedCharsCount = remainingCode.startsWith(grammar.value) ? grammar.value.length : 0;
+      }
+
+      else if (isRegExpGrammar(grammar)) {
+        matchedCharsCount = remainingCode.match(grammar.value)?.[0].length ?? 0;
+      }
+
+      if (matchedCharsCount === undefined) {
+        throw new Error(`Unhandled terminal grammar type : ${inspect(grammar)}`);
+      }
+
+      return matchedCharsCount;
+    });
+
+    { // Parsing
+      const startContext: Context = { grammar: null, offset: 0, matchedCharsCount: 0, previous: null };
+      let contexts: Array<Context> = [startContext];
+
+      const success: Array<Context> = [];
+      let lastErrors: Array<ParseError> = [];
+
+      function recordError(context: Context, action: Action) {
+        const matchedOffset = context.offset + context.matchedCharsCount;
+        const maxMatchedOffset = lastErrors[0]?.context.offset + lastErrors[0]?.context.matchedCharsCount;
+        if (maxMatchedOffset < matchedOffset) lastErrors = [];
+        else if (maxMatchedOffset > matchedOffset) return; // Keep only the longest context
+        lastErrors.push({ context, action });
+      }
+
+      do {
+        const nextContexts: Array<Context> = [];
+        for (const context of contexts) {
+          const nextContextsForContext: Array<Context> = [];
+          const lastActionByContext = new WeakMap(); // Used for conflicts resolution. Weak to prevent memory leak.
+
+          const nextActions = nextPossibleActionsByLastGrammar.get(context.grammar) ?? new Set();
+          for (const nextAction of nextActions) {
+            // console.log(`Processing ${inspectContext(context, code)}`); // SROB
+            const { type: actionType, grammar } = nextAction;
+
+            if (actionType === ActionType.SHIFT) {
+              // We'll try to match a terminal at the current offset.
+              const nextOffset = context.offset + context.matchedCharsCount;
+              const matchedCharsCount: number = matchTerminal(nextOffset, grammar!);
+              if (matchedCharsCount > 0) {
+                const nextContext = { grammar, offset: nextOffset, matchedCharsCount, previous: context }
+                nextContextsForContext.push(nextContext);
+                lastActionByContext.set(nextContext, nextAction);
+              } else {
+                // Syntax error
+                recordError(context, nextAction);
+              }
+            }
+
+            else if (actionType === ActionType.REDUCE) {
+              // Reduce a non-terminal
+
+              if (isChoiceGrammar(grammar)) {
+                nextContextsForContext.push({
+                  grammar,
+                  offset: context.offset,
+                  matchedCharsCount: context.matchedCharsCount,
+                  previous: context.previous,
+                  children: [context],
                 });
+              }
 
-                if (node) node.prepend(n);
-                node = n;
+              else if (isSequenceGrammar(grammar)) {
+                // Try to find a node which is not part of the sequence, right-to-left
+                let contextToCheck: Context | null = context;
+                let matchedCharsCount = 0;
+                let firstContext;
+                const children: Array<Context> = [];
+                for (let i = grammar.value.length - 1; i >= 0; i--) {
+                  if (contextToCheck?.grammar !== grammar.value[i]) {
+                    firstContext = null;
+                    break;
+                  }
 
-            } else if (c.actionType === ActionTypeEnum.SHIFT) {
-                node = node.parent || node;
-            }
-
-            c = c.previous;
-        }
-
-        return node;
-    }
-
-    private processContexts(initialContext: Context): Context {
-        const contexts = new Set([initialContext]);
-        const errors: ParseErrors = {
-            expected: new Set(),
-            offset: 0,
-        };
-
-        while (contexts.size > 0) {
-            const context = contexts.values().next().value;
-            contexts.delete(context);
-
-            if (context.actionType === ActionTypeEnum.FINISH) return context;
-
-            const nextContexts = this.getNextContexts(context, errors);
-            for (const c of nextContexts) {
-                // Filter out infinite recursions
-                if (c.actionType !== ActionTypeEnum.SHIFT) continue;
-                let p = c.parent;
-                let recursionsCount = 0;
-                for (; ;) {
-                    if (p === null || p.offset !== c.offset) break;
-                    if (p.actionType === ActionTypeEnum.SHIFT && p.grammar === c.grammar) {
-                        if (++recursionsCount === this.maxRecursionsCount) {
-                            nextContexts.delete(c);
-                            break;
-                        }
-                    }
-                    p = p.parent;
-                }
-            }
-
-            // Add the new contexts
-            for (const c of nextContexts) {
-                if (contexts.size >= this.maxContexts) break;
-                contexts.add(c);
-            }
-        }
-
-        this.throwError(initialContext.code, errors);
-    }
-
-    private static onParseError(context: Context, errors: ParseErrors, tooMuchCode = false) {
-        const g = (tooMuchCode ? null : context.grammar);
-        const offset = context.offset + (context.matchedLength || 0);
-        if (errors.offset < offset) {
-            errors.offset = offset;
-            errors.expected = new Set([g]);
-        } else if (errors.offset === offset) {
-            errors.expected.add(g);
-        }
-    }
-
-    private getNextContexts(context: Context, errors: ParseErrors): Set<Context> {
-        // Get every possible next contexts
-        const nextContexts = this.actionsGraphAnalyzer.getPossibleNextContexts(context);
-
-        // Try to match each one
-        for (const nextContext of nextContexts) {
-            if (nextContext.actionType === ActionTypeEnum.REDUCE && isTerminalGrammarDefinition(nextContext.grammar)) {
-                const matchedLength = this.terminalsMatcher.match(nextContext);
-                if (matchedLength) nextContext.matchedLength = matchedLength;
-                else {
-                    // Syntax error
-                    Parser.onParseError(nextContext, errors);
-                    nextContexts.delete(nextContext);
+                  matchedCharsCount += contextToCheck.matchedCharsCount;
+                  firstContext = contextToCheck;
+                  children.unshift(contextToCheck);
+                  contextToCheck = contextToCheck.previous ?? null;
                 }
 
-            } else if (nextContext.actionType === ActionTypeEnum.FINISH && nextContext.matchedLength < nextContext.code.length) {
-                // There is still some code left.
-                Parser.onParseError(nextContext, errors, true);
-                nextContexts.delete(nextContext);
+                if (firstContext) {
+                  // We can reduce
+                  nextContextsForContext.push({ grammar, offset: firstContext.offset, matchedCharsCount, previous: firstContext.previous, children });
+                } else {
+                  // console.log("Reduce failed (sequence does not match previous contexts)");
+                }
+              }
+
+              else {
+                throw new Error(`Unhandled grammar type for reduce : ${inspect(grammar)}`);
+              }
             }
+
+            else if (actionType === ActionType.ACCEPT) {
+              if (context.previous === startContext && context.offset === 0) {
+                if (context.matchedCharsCount < code.length) {
+                  recordError(context, nextAction);
+                } else {
+                  success.push(context);
+                }
+              } else {
+                // console.log("Accept failed (not root grammar)");
+              }
+            }
+
+            else {
+              throw new Error(`Unhandled action type : ${inspect(nextAction)}`);
+            }
+          }
+
+          // Order contexts by precedence
+          nextContextsForContext.sort((a: Context, b: Context) => {
+            const aPrec = a.grammar?.precedence ?? (lastActionByContext.get(a)?.precedence) ?? 0;
+            const bPrec = b.grammar?.precedence ?? (lastActionByContext.get(b)?.precedence) ?? 0;
+            const precDiff = bPrec - aPrec;
+            if (precDiff) return precDiff; // First, handle precedence
+
+            const reduceFirstDiff = (isTerminalGrammar(a.grammar) ? 1 : 0) - (isTerminalGrammar(b.grammar) ? 1 : 0);
+            if (!a.grammar?.rightToLeft) return reduceFirstDiff; // Left-to-right
+            return -reduceFirstDiff; // Right-to-left
+          });
+
+          // console.debug(
+          //   nextContextsForContext.length > 0 ? nextContextsForContext.map(c => `${inspectContext(context, code)} => ${inspectContext(c, code)}\n`).join("")
+          //     : `${inspectContext(context, code)} => ❌`
+          // ); // SROB
+
+          nextContexts.push(...nextContextsForContext);
         }
 
-        return nextContexts;
-    }
+        // Filter out conflicting contexts
+        // This relies on the earlier context sorting based on precedence and keeps only the first context for
+        // each given (previous context, grammar, matchedCharsCount) tuple.
+        const filteredNextContexts = nextContexts.filter(context => {
+          if (isTerminalGrammar(context.grammar)) return true;
+          const cachedContext = firstContextByPreviousGrammarMatchedCharsCountCache(
+            [context.previous, context.grammar, context.matchedCharsCount],
+            () => context
+          );
 
-    private throwError(code, errors: ParseErrors) {
-        const expected = Array.from(errors.expected).map(s => s && s.valueOf ? s.valueOf() : s) as Array<GrammarDefinition>;
-        const expectedOffset: number = errors.offset;
+          // if (cachedContext !== context) console.log(`Filtering out ${inspectContext(context, code)} in favor of ${inspectContext(cachedContext, code)}`);
 
-        let lines = code.split("\n");
-        let o = 0;
-        lines.forEach((line, i) => {
-            let l = line.length;
-            if (o + i <= expectedOffset && expectedOffset <= o + i + l) {
-                let lineOffset = expectedOffset - (o + i) + 1;
-                let spaces = new Array(lineOffset).join(" ");
-
-                let expectedStr = (
-                    expected.length
-                        ? "expected " + expected.map(function (expected) {
-                            if (expected === null) return "EOF";
-                            if (isFunctionGrammarDefinition(expected) && expected.getPossibleValues) return expected.getPossibleValues(code.substr(expectedOffset)).join(' or ')
-                            return (expected as TaggableGrammarDefinition)?.tag || expected;
-                        }).join(" or ")
-                        : "Grammar error."
-                );
-
-                let message = `Syntax error on line ${i + 1}, column ${lineOffset}:\n${line}\n${spaces}^ ${expectedStr}`;
-                const e: SyntaxError = Object.assign(new Error(message), {expected});
-                throw e;
-            }
-            o += l;
+          return cachedContext === context;
         });
+
+        contexts = filteredNextContexts;
+      } while (contexts.length > 0);
+
+      function throwSyntaxError(lastErrors: Array<ParseError>, code: string) {
+        const expected = Array.from(new Set(lastErrors.map(({ context, action }) => {
+          return action.type === ActionType.ACCEPT ? "<EOF>"
+            : action.grammar?.id ? `<${action.grammar?.id}>`
+              : inspect(action.grammar?.value);
+        })));
+
+        const offset = lastErrors[0].context.offset + lastErrors[0].context.matchedCharsCount;
+        const m = code.match(new RegExp(`^([^]{${offset}})(.{0,10})`));
+        const line = Array.from(m![1].matchAll(/\n/g)).length + 1;
+        const lastMatchedRow = m![1].match(/.+$/)?.[0] ?? "";
+        const remainingCode = m![2];
+        const column = (lastMatchedRow.length ?? 0) + 1;
+        throw new SyntaxError(`Syntax error on line ${line}, columns ${column}:\n${lastMatchedRow}${remainingCode}\n${" ".repeat(lastMatchedRow.length)}^Expected one of [${expected.join(", ")}]`); // SROB
+      }
+
+      if (!success.length) throwSyntaxError(lastErrors, code);
+      // SROB Hydrate pseudo-DOM
+
+      console.log(inspect(success.map(context => inspectContext(context, code)))); // SROB
     }
+  }
 }
