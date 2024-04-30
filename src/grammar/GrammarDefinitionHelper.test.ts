@@ -5,7 +5,10 @@ import GrammarDefinitionHelper from "./GrammarDefinitionHelper.ts";
 const runtime = new DenoRuntimeAdapter();
 const { g } = new GrammarDefinitionHelper(runtime);
 
-Deno.test("Grammar definition helper", () => {
-  const foo = g("Foo", {id: "foo"});
-  assertEquals(foo, { type: "string", value: "Foo", id: "foo" });
+Deno.test("Grammar definition helper", async (t) => {
+  const foo = g("Foo", { id: "foo" });
+
+  await t.step("Foo", () => {
+    assertEquals(foo, { type: "string", value: "Foo", id: "foo" });
+  });
 });

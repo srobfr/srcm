@@ -1,8 +1,10 @@
+import Node from "../dom/Node.ts";
 import { Grammar, isChoiceGrammar, isRegExpGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
 import buildCache from "../utils/cache.ts";
 import memoize from "../utils/memoize.ts";
 import GrammarAnalyzer from "./GrammarAnalyzer.ts";
+import DomBuilder from "../dom/DomBuilder.ts";
 import inspectContext from "./inspectContext.ts";
 import { Action, ActionType, Context, ParseError } from "./types.ts";
 
@@ -12,12 +14,13 @@ export default class Parser {
   constructor(
     private readonly runtime: RuntimeAdapter,
     private readonly grammarAnalyzer: GrammarAnalyzer,
+    private readonly domBuilder: DomBuilder,
   ) { }
 
   public parse = this.#parse.bind(this);
 
   /** Parses code against a given grammar */
-  #parse(code: string, grammar: Grammar) {
+  #parse(code: string, grammar: Grammar): Node {
     const { inspect } = this.runtime;
 
     /** Used to optimize contexts forest by keeping only the first context matching the (grammar, offset, matchedCharsCount) tuple */
@@ -203,9 +206,10 @@ export default class Parser {
       }
 
       if (!success.length) throwSyntaxError(lastErrors, code);
-      // SROB Hydrate pseudo-DOM
-
       console.log(inspect(success.map(context => inspectContext(context, code)))); // SROB
+
+      // Hydrate & return pseudo-dom
+      return this.domBuilder.build(success[0], this.parse);
     }
   }
 }
