@@ -1,11 +1,19 @@
 import { RuntimeAdapter } from "../runtimes/types.ts";
+import { ChoiceGrammar } from "./GrammarTypes.ts";
 import { isGrammar } from "./GrammarTypes.ts";
 import { Grammar } from "./GrammarTypes.ts";
 
-type OrGrammarDef = { or: Array<GrammarDef> };
-const isOrGrammarDef = (value: any): value is OrGrammarDef => value?.or && Array.isArray(value.or);
+export type OrGrammarDef = { or: Array<GrammarDef> };
+export const isOrGrammarDef = (value: any): value is OrGrammarDef => value?.or && Array.isArray(value.or);
 
-type GrammarDef = Grammar | RegExp | string | Array<GrammarDef> | OrGrammarDef;
+export type GrammarDef = Grammar | RegExp | string | Array<GrammarDef> | OrGrammarDef;
+export const isGrammarDef = (value: any): value is GrammarDef => (
+  isGrammar(value) ||
+  value instanceof RegExp ||
+  typeof value === "string" ||
+  Array.isArray(value) ||
+  isOrGrammarDef(value)
+);
 
 type EmptyObject = Record<string | number | symbol, never>;
 
@@ -17,15 +25,18 @@ export default class GrammarDefinitionHelper {
   }
 
   /** Helper to converts shorthand grammar formats into full grammar objects */
+  #g(value: TemplateStringsArray, ...args: Array<GrammarDef>): Grammar; // Typically called like this : g`Foo${"bar"}plop`
+  #g(value: OrGrammarDef, props?: Partial<Grammar>): ChoiceGrammar;
+  #g(value: GrammarDef, props?: Partial<Grammar>): Grammar; // Typically called like this : g("Foo", {id: "foo"})
   #g(
     value: string | TemplateStringsArray | GrammarDef,
-    props?: Partial<Grammar> | { [key: string]: any },
+    props?: GrammarDef | { [key: string]: any },
     ...args: Array<GrammarDef>
   ): Grammar {
     const r = this.gCache?.get(value);
     if (r) return r as Grammar;
 
-    if (args.length > 0) {
+    if (Array.isArray(value) && isGrammarDef(props)) {
       args.unshift(props as GrammarDef);
       props = undefined;
     }

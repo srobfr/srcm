@@ -190,7 +190,7 @@ export default class Parser {
       } while (contexts.length > 0);
 
       function throwSyntaxError(lastErrors: Array<ParseError>, code: string) {
-        const expected = Array.from(new Set(lastErrors.map(({ context, action }) => {
+        const expected = Array.from(new Set(lastErrors.map(({ action }) => {
           return action.type === ActionType.ACCEPT ? "<EOF>"
             : action.grammar?.id ? `<${action.grammar?.id}>`
               : inspect(action.grammar?.value);
@@ -206,10 +206,10 @@ export default class Parser {
       }
 
       if (!success.length) throwSyntaxError(lastErrors, code);
-      console.log(inspect(success.map(context => inspectContext(context, code)))); // SROB
+      // console.log(inspect(success.map(context => inspectContext(context, code)))); // SROB
 
       // Hydrate & return pseudo-dom
-      return this.domBuilder.build(success[0], this.parse);
+      return this.domBuilder.build(success[0], this.parse, code);
     }
   }
 }
