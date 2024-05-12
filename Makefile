@@ -8,7 +8,8 @@ node_modules:
 	npm i
 
 test: ## Runs tests
-	deno test src/
+  # Translating \ to \\ to easy copy/paste of failed tests using stableInspect() comparisons
+	deno test src/ | sed 's:\\:\\\\:g'
 
 publish-patch: build test ## Publish a new version on NPM, with PATCH semver level
 	npm version patch
