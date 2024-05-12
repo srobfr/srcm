@@ -8,24 +8,31 @@ export type GrammarBase = {
 };
 
 // Terminal grammar types
-export type StringGrammar = { type: "string", value: string };
+export type StringGrammar = { type: "string", value: string } & GrammarBase;
 export const isStringGrammar = (value: any): value is StringGrammar => value?.type === "string";
-export type RegExpGrammar = { type: "regexp", value: RegExp };
+export type RegExpGrammar = { type: "regexp", value: RegExp } & GrammarBase;
 export const isRegExpGrammar = (value: any): value is RegExpGrammar => value?.type === "regexp";
+
 export type TerminalGrammar = StringGrammar | RegExpGrammar;
 export const isTerminalGrammar = (value: any): value is TerminalGrammar => isStringGrammar(value) || isRegExpGrammar(value);
 
 // Non-terminal grammar types
-export type SequenceGrammar = { type: "sequence", value: Grammar[] };
+export type SequenceGrammar = { type: "sequence", value: Grammar[] } & GrammarBase;
 export const isSequenceGrammar = (value: any): value is SequenceGrammar => value?.type === "sequence";
-export type ChoiceGrammar = { type: "choice", value: Grammar[] };
+export type ChoiceGrammar = { type: "choice", value: Grammar[] } & GrammarBase;
 export const isChoiceGrammar = (value: any): value is ChoiceGrammar => value?.type === "choice";
-export type RepeatGrammar = { type: "repeat", value: Grammar, sep?: Grammar };
+
+/** @deprecated */
+export type RepeatGrammar = { type: "repeat", value: Grammar, sep?: Grammar } & GrammarBase;
+/** @deprecated */
 export const isRepeatGrammar = (value: any): value is RepeatGrammar => value?.type === "repeat";
-export type OptionalGrammar = { type: "optional", value: Grammar };
+/** @deprecated */
+export type OptionalGrammar = { type: "optional", value: Grammar } & GrammarBase;
+/** @deprecated */
 export const isOptionalGrammar = (value: any): value is OptionalGrammar => value?.type === "optional";
+
 export type NonTerminalGrammar = SequenceGrammar | ChoiceGrammar | RepeatGrammar | OptionalGrammar;
 export const isNonTerminalGrammar = (value: any): value is NonTerminalGrammar => isSequenceGrammar(value) || isChoiceGrammar(value) || isRepeatGrammar(value) || isOptionalGrammar(value);
 
-export type Grammar = (TerminalGrammar | NonTerminalGrammar) & GrammarBase;
+export type Grammar = (TerminalGrammar | NonTerminalGrammar);
 export const isGrammar = (value: any): value is Grammar => isTerminalGrammar(value) || isNonTerminalGrammar(value);

@@ -27,7 +27,7 @@ Deno.test({
 
 Deno.test({
   name: "Parser / Operators & precedence parsing", fn() {
-    const expr = g({ or: [] }); // TODO Migrate to g.or()
+    const expr = g.or([]);
     const number = g(/^\d+/);
     const addition = g([expr, "+", expr], { id: "add", precedence: 1 });
     const subtraction = g([expr, "-", expr], { id: "sub", precedence: 1 });
@@ -49,3 +49,20 @@ Deno.test({
     }
   }
 });
+
+Deno.test({
+  name: "Parser / Optional", fn() {
+    const foo = g`(${g.optional("Foo", { id: "foo" })})`;
+    {
+      const $ = parse(`(Foo)`, foo);
+      assertEquals($.xml(), "(<foo>Foo</foo>)");
+      assertEquals($.text(), "(Foo)");
+    }
+    {
+      const $ = parse(`()`, foo);
+      assertEquals($.xml(), "(<foo/>)");
+      assertEquals($.text(), "()");
+    }
+  }
+});
+

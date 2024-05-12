@@ -1,3 +1,5 @@
+import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
+import { SequenceGrammar } from "../grammar/GrammarTypes.ts";
 import { isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isSequenceGrammar, TerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
@@ -27,51 +29,9 @@ export default class GrammarAnalyzer {
 
   /** Analyzes the root grammar to extract the required data for bottom-up parsing */
   public analyzeGrammar(grammar: Grammar): AnalysisContext["nextPossibleActionsByLastGrammar"] {
-
-    // const context: AnalysisContext = {
-    //   /** Memoized action factory prevents doubles */
-    //   action: memoize((type: ActionType, grammar: Grammar | null, precedence?: number, rightToLeft?: boolean): Action => ({
-    //     type, grammar,
-    //     ...precedence ? { precedence } : null,
-    //     ...rightToLeft ? { rightToLeft } : null,
-    //   })),
-
-    //   /**
-    //    * Contains the list of first possible terminals for each non-terminal grammar.
-    //    * Useful to compute the shift actions during the parsing phase.
-    //    */
-    //   firstPossibleTerminalsByGrammar: new Map<Grammar | null, Set<Grammar>>(),
-
-    //   /** Contains the list of possible next actions, indexed by the last matched or reduced grammar */
-    //   nextPossibleActionsByLastGrammar: new Map<Grammar | null, Set<Action>>(),
-    // };
-
     // Find first terminals for each grammar
     const firstPossibleTerminalsByGrammar = this.extractFirstPossibleTerminalsByGrammar(grammar);
     const nextPossibleActionsByLastGrammar = this.extractNextPossibleActionsByLastGrammar(grammar, firstPossibleTerminalsByGrammar);
-    // console.log(this.runtime.inspect({ nextPossibleActionsByLastGrammar })) // SROB
-    // throw new Error("SROB");
-
-    // this.walkFullGrammar({
-    //   context,
-    //   grammar,
-    //   alreadyWalked: new Set(),
-    //   indexInParent: 0,
-    //   parent: null,
-    //   process: this.hydrateFirstPossibleTerminalsByGrammar.bind(this),
-    // });
-
-    // console.log("SROB", this.runtime.inspect(context.firstPossibleTerminalsByGrammar)) // SROB
-
-    // this.walkFullGrammar({
-    //   context,
-    //   grammar,
-    //   alreadyWalked: new Set(),
-    //   indexInParent: 0,
-    //   parent: null,
-    //   process: this.hydrateNextPossibleActionsByLastGrammar.bind(this),
-    // });
-
     return nextPossibleActionsByLastGrammar;
   }
 
@@ -127,7 +87,7 @@ export default class GrammarAnalyzer {
     }
   }
 
-  private extractFirstPossibleTerminalsByGrammar(grammar: Grammar): Map<Grammar | null, Set<Grammar>> {
+  private extractFirstPossibleTerminalsByGrammar(grammar: Grammar): Map<Grammar | null, Set<TerminalGrammar | null>> {
     const walkParamsByGrammar = new Map<Grammar | null, Set<WalkParams>>();
     const terminals = new Set<TerminalGrammar>();
 
@@ -137,20 +97,29 @@ export default class GrammarAnalyzer {
       if (isTerminalGrammar(grammar)) terminals.add(grammar);
     });
 
-    const firstPossibleTerminalsByGrammar = new Map<Grammar | null, Set<Grammar>>();
+    const firstPossibleTerminalsByGrammar = new Map<Grammar | null, Set<TerminalGrammar | null>>();
     for (const terminal of terminals) mapSetAddBy(firstPossibleTerminalsByGrammar, terminal, [terminal]);
 
     const recursiveProcessGrammar = (grammar: Grammar | null) => {
-      const firstTerminals = firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<TerminalGrammar>();
+      const firstTerminals = firstPossibleTerminalsByGrammar.get(grammar) ?? new Set();
       if (!firstTerminals.size) return;
 
       for (const walkParams of (walkParamsByGrammar.get(grammar) ?? new Set())) {
         const { parent, indexInParent } = walkParams;
-        if (indexInParent > 0) continue;
 
-        const sizeBefore = (firstPossibleTerminalsByGrammar.get(parent) ?? new Set<TerminalGrammar>()).size;
+        // SROB Vérifier que tous les siblings précédents ont un null dans leur firstPossibleTerminalsByGrammar
+        // If we are not processing the first item of a sequence and a previous item is not optional => skip
+        if (indexInParent > 0 &&
+          (parent as SequenceGrammar)?.value.find((siblingGrammar, siblingIndex) => (
+            siblingIndex < indexInParent && // Previous
+            !(firstPossibleTerminalsByGrammar.get(siblingGrammar) ?? new Set<TerminalGrammar | null>()).has(null) // Not optional
+          ))) {
+          continue;
+        }
+
+        const sizeBefore = (firstPossibleTerminalsByGrammar.get(parent) ?? new Set()).size;
         mapSetAddBy(firstPossibleTerminalsByGrammar, parent, firstTerminals);
-        const sizeAfter = (firstPossibleTerminalsByGrammar.get(parent) ?? new Set<TerminalGrammar>()).size;
+        const sizeAfter = (firstPossibleTerminalsByGrammar.get(parent) ?? new Set()).size;
         if (sizeBefore < sizeAfter) recursiveProcessGrammar(parent);
       }
     };
@@ -160,7 +129,7 @@ export default class GrammarAnalyzer {
     return firstPossibleTerminalsByGrammar;
   }
 
-  private extractNextPossibleActionsByLastGrammar(grammar: Grammar, firstPossibleTerminalsByGrammar: Map<Grammar | null, Set<Grammar>>): Map<Grammar | null, Set<Action>> {
+  private extractNextPossibleActionsByLastGrammar(grammar: Grammar, firstPossibleTerminalsByGrammar: Map<Grammar | null, Set<TerminalGrammar | null>>): Map<Grammar | null, Set<Action>> {
     const nextPossibleActionsByLastGrammar = new Map<Grammar | null, Set<Action>>();
 
     this.walkFullGrammar(grammar, (walkParams: WalkParams) => {
@@ -179,6 +148,10 @@ export default class GrammarAnalyzer {
       }
 
       else if (isChoiceGrammar(parent)) {
+        mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]);
+      }
+
+      else if (isOptionalGrammar(parent)) {
         mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]);
       }
 

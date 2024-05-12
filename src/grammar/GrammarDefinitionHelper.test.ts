@@ -74,6 +74,47 @@ Deno.test("GrammarDefinitionHelper / Recursion", () => {
   });
 });
 
-Deno.test({ name: "GrammarDefinitionHelper / Or", ignore: true, fn: () => { /* TODO */ } });
-Deno.test({ name: "GrammarDefinitionHelper / Optional", ignore: true, fn: () => { /* TODO */ } });
-Deno.test({ name: "GrammarDefinitionHelper / Repetition", ignore: true, fn: () => { /* TODO */ } });
+Deno.test({
+  name: "GrammarDefinitionHelper / Or", fn() {
+    const foobar = g.or(["foo", "bar"], { id: "foobar" });
+    assertEquals(foobar, {
+      id: "foobar",
+      type: "choice",
+      value: [
+        {
+          type: "string",
+          value: "foo",
+        },
+        {
+          type: "string",
+          value: "bar",
+        },
+      ]
+    });
+  }
+});
+
+Deno.test({
+  name: "GrammarDefinitionHelper / Optional", fn() {
+    const foo = g.optional("Foo", { id: "foo" });
+    assertEquals(foo, {
+      id: "foo",
+      type: "choice",
+      value: [{ type: "string", value: "Foo" }, { type: "string", value: "" }],
+    });
+  }
+});
+
+Deno.test({
+  name: "GrammarDefinitionHelper / Repetition", fn() {
+    const foo = g.repeat("Foo", { id: "foo" });
+    assertEquals(foo, {
+      id: "foo",
+      type: "repeat",
+      value: {
+        type: "string",
+        value: "Foo",
+      }
+    });
+  }
+});

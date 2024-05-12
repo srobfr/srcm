@@ -30,16 +30,16 @@ export default class Parser {
 
     // console.log(inspect({ nextPossibleActionsByLastGrammar })) // SROB
 
-    const matchTerminal = memoize((offset: number, grammar: Grammar): number => {
+    const matchTerminal = memoize((offset: number, grammar: Grammar): number | null => {
       const remainingCode = code.substring(offset);
-      let matchedCharsCount: number | undefined;
+      let matchedCharsCount: number | null | undefined;
 
       if (isStringGrammar(grammar)) {
-        matchedCharsCount = remainingCode.startsWith(grammar.value) ? grammar.value.length : 0;
+        matchedCharsCount = remainingCode.startsWith(grammar.value) ? grammar.value.length : null;
       }
 
       else if (isRegExpGrammar(grammar)) {
-        matchedCharsCount = remainingCode.match(grammar.value)?.[0].length ?? 0;
+        matchedCharsCount = remainingCode.match(grammar.value)?.[0].length ?? null;
       }
 
       if (matchedCharsCount === undefined) {
@@ -78,8 +78,8 @@ export default class Parser {
             if (actionType === ActionType.SHIFT) {
               // We'll try to match a terminal at the current offset.
               const nextOffset = context.offset + context.matchedCharsCount;
-              const matchedCharsCount: number = matchTerminal(nextOffset, grammar!);
-              if (matchedCharsCount > 0) {
+              const matchedCharsCount: number | null = matchTerminal(nextOffset, grammar!);
+              if (matchedCharsCount !== null) {
                 const nextContext = { grammar, offset: nextOffset, matchedCharsCount, previous: context }
                 nextContextsForContext.push(nextContext);
                 lastActionByContext.set(nextContext, nextAction);

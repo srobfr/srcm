@@ -1,4 +1,7 @@
 import { RuntimeAdapter } from "../runtimes/types.ts";
+import { OptionalGrammar } from "./GrammarTypes.ts";
+import { SequenceGrammar } from "./GrammarTypes.ts";
+import { RepeatGrammar } from "./GrammarTypes.ts";
 import { ChoiceGrammar } from "./GrammarTypes.ts";
 import { isGrammar } from "./GrammarTypes.ts";
 import { Grammar } from "./GrammarTypes.ts";
@@ -25,8 +28,9 @@ export default class GrammarDefinitionHelper {
   }
 
   /** Helper to converts shorthand grammar formats into full grammar objects */
-  #g(value: TemplateStringsArray, ...args: Array<GrammarDef>): Grammar; // Typically called like this : g`Foo${"bar"}plop`
+  #g(value: TemplateStringsArray, ...args: Array<GrammarDef>): SequenceGrammar; // Typically called like this : g`Foo${"bar"}plop`
   #g(value: OrGrammarDef, props?: Partial<Grammar>): ChoiceGrammar;
+  #g<TGrammar extends Grammar>(value: TGrammar, props?: Partial<Grammar>): TGrammar;
   #g(value: GrammarDef, props?: Partial<Grammar>): Grammar; // Typically called like this : g("Foo", {id: "foo"})
   #g(
     value: string | TemplateStringsArray | GrammarDef,
@@ -77,6 +81,23 @@ export default class GrammarDefinitionHelper {
     }
   }
 
+  #or(value: Array<GrammarDef>, props?: Partial<Grammar>): ChoiceGrammar {
+    return { ...props, type: "choice", value: value.map(v => this.#g(v)) };
+  }
+
+  #optional(value: GrammarDef, props?: Partial<Grammar>): ChoiceGrammar {
+    // return { ...props, type: "optional", value: this.#g(value) }; // SROB
+    return { ...props, type: "choice", value: [this.#g(value), this.#g("")] };
+  }
+
+  #repeat(value: GrammarDef, props?: Partial<Grammar>): RepeatGrammar {
+    return { ...props, type: "repeat", value: this.#g(value) };
+  }
+
   /** Helper to converts shorthand grammar formats into full grammar objects */
-  public g = this.#g.bind(this);
+  public g = Object.assign(this.#g.bind(this), {
+    or: this.#or.bind(this),
+    optional: this.#optional.bind(this),
+    repeat: this.#repeat.bind(this),
+  });
 }
