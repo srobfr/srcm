@@ -2,6 +2,7 @@ import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { SequenceGrammar } from "../grammar/GrammarTypes.ts";
 import { isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { OptionalGrammar } from "../grammar/GrammarTypes.ts";
+import { isRepeatGrammar } from "../grammar/GrammarTypes.ts";
 import { TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isSequenceGrammar, TerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
@@ -146,7 +147,6 @@ export default class GrammarAnalyzer {
         mapSetAddBy(
           nextPossibleActionsByLastGrammar, parent,
           Array.from(firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<Grammar>()).map(
-            // SROB gérer le type optional
             subGrammar => action(ActionType.SHIFT, subGrammar)
           )
         );
@@ -160,6 +160,16 @@ export default class GrammarAnalyzer {
 
       else if (isOptionalGrammar(parent)) {
         mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]);
+      }
+
+      else if (isRepeatGrammar(parent)) {
+        mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]); // Stop here
+        mapSetAddBy( // Or shift again
+          nextPossibleActionsByLastGrammar, grammar,
+          Array.from(firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<Grammar>()).map(
+            subGrammar => action(ActionType.SHIFT, subGrammar, parentPrecedence, parentRightToLeft)
+          )
+        );
       }
 
       else if (isSequenceGrammar(parent)) {
@@ -180,7 +190,7 @@ export default class GrammarAnalyzer {
       }
 
       else {
-        console.trace(`TODO handle next actions for parent : ${inspect(parent)}`); // SROB Gérer les autres actions
+        console.trace(`Unhandled next actions for parent : ${inspect(parent)}`);
       }
     });
 

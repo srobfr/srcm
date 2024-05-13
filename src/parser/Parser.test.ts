@@ -4,6 +4,7 @@ import GrammarDefinitionHelper from "../grammar/GrammarDefinitionHelper.ts";
 import DenoRuntimeAdapter from "../runtimes/DenoRuntimeAdapter.ts";
 import GrammarAnalyzer from "./GrammarAnalyzer.ts";
 import Parser from "./Parser.ts";
+import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 
 const runtimeAdapter = new DenoRuntimeAdapter();
 const grammarDefinitionHelper = new GrammarDefinitionHelper(runtimeAdapter);
@@ -26,7 +27,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Parser / Operators & precedence parsing", fn() {
+  name: "Parser / Operators & precedence parsing", async fn(t) {
     const expr = g.or([]);
     const number = g(/^\d+/);
     const addition = g([expr, "+", expr], { id: "add", precedence: 1 });
@@ -44,25 +45,53 @@ Deno.test({
       ["1^2^3", "<exp>1^<exp>2^3</exp></exp>"],
       ["1^2/3^4", "<div><exp>1^2</exp>/<exp>3^4</exp></div>"],
     ]) {
-      const $ = parse(code, expr);
-      assertEquals(`${code} => ${$.xml()}`, `${code} => ${xml}`);
+      await t.step(code, () => {
+        const $ = parse(code, expr);
+        assertEquals($.xml(), xml);
+      });
     }
   }
 });
 
 Deno.test({
-  name: "Parser / Optional", fn() {
+  name: "Parser / Optional", async fn(t) {
     const foo = g`(${g.optional("Foo", { id: "foo" })})`;
-    {
+    await t.step("With content", () => {
       const $ = parse(`(Foo)`, foo);
       assertEquals($.xml(), "(<foo>Foo</foo>)");
       assertEquals($.text(), "(Foo)");
-    }
-    {
+    });
+
+    await t.step("Empty content", () => {
       const $ = parse(`()`, foo);
       assertEquals($.xml(), "(<foo/>)");
       assertEquals($.text(), "()");
-    }
+    });
+
+    await t.step("Repeated", () => {
+      assertThrows(() => { parse(`(FooFoo)`, foo); }, Error, `\n    ^Expected one of [")"]`);
+    });
+  }
+});
+
+Deno.test({
+  name: "Parser / Repetition", async fn(t) {
+    const foos = g`(${g.repeat(g("Foo", { id: "foo" }), { id: "foos" })})`;
+    await t.step("One repetition", () => {
+      const $ = parse(`(Foo)`, foos);
+      assertEquals($.xml(), "(<foos><foo>Foo</foo></foos>)");
+      assertEquals($.text(), "(Foo)");
+    });
+
+    await t.step("Three repetitions", () => {
+      const $ = parse(`(FooFooFoo)`, foos);
+      assertEquals($.xml(), "(<foos><foo>Foo</foo><foo>Foo</foo><foo>Foo</foo></foos>)");
+      assertEquals($.text(), "(FooFooFoo)");
+    });
+
+    await t.step("No repetition", () => {
+      assertThrows(() => { parse(`()`, foos); }, Error, `\n ^Expected one of [<foo>]`);
+    });
   }
 });
 

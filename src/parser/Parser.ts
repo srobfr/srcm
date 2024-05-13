@@ -1,5 +1,6 @@
 import DomBuilder from "../dom/DomBuilder.ts";
 import Node from "../dom/Node.ts";
+import { isRepeatGrammar } from "../grammar/GrammarTypes.ts";
 import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { TerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { Grammar, isChoiceGrammar, isRegExpGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
@@ -130,6 +131,28 @@ export default class Parser {
                     break;
                   }
 
+                  matchedCharsCount += contextToCheck.matchedCharsCount;
+                  firstContext = contextToCheck;
+                  children.unshift(contextToCheck);
+                  contextToCheck = contextToCheck.previous ?? null;
+                }
+
+                if (firstContext) {
+                  // We can reduce
+                  nextContextsForContext.push({ grammar, offset: firstContext.offset, matchedCharsCount, previous: firstContext.previous, children });
+                } else {
+                  // console.log("Reduce failed (sequence does not match previous contexts)");
+                }
+              }
+
+              else if (isRepeatGrammar(grammar)) {
+                // Try to find a node which is not part of the sequence, right-to-left
+                let contextToCheck: Context | null = context;
+                let matchedCharsCount = 0;
+                let firstContext = null;
+
+                const children: Array<Context> = [];
+                while (contextToCheck?.grammar === grammar.value) {
                   matchedCharsCount += contextToCheck.matchedCharsCount;
                   firstContext = contextToCheck;
                   children.unshift(contextToCheck);

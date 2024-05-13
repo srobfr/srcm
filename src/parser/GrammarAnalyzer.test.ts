@@ -71,4 +71,10 @@ Deno.test({
   }
 });
 
-Deno.test({ name: "GrammarAnalyzer / Repetition", ignore: true, fn: () => { /* TODO */ } });
+Deno.test({
+  name: "GrammarAnalyzer / Repetition", fn() {
+    const grammar = g.repeat("foo");
+    const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
+    assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[{"type":"shift","grammar":"#ref2"}],"<{\\"type\\":\\"repeat\\",\\"value\\":{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"}}>":[{"type":"accept","grammar":null}],"<\\"#ref1\\">":[{"type":"reduce","grammar":"#ref0"},{"type":"shift","grammar":"#ref6"}]}`);
+  }
+});
