@@ -1,10 +1,13 @@
 import DomBuilder from "../dom/DomBuilder.ts";
 import Node from "../dom/Node.ts";
+import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
+import { TerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { Grammar, isChoiceGrammar, isRegExpGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
 import buildCache from "../utils/cache.ts";
 import memoize from "../utils/memoize.ts";
 import GrammarAnalyzer from "./GrammarAnalyzer.ts";
+import inspectContext from "./inspectContext.ts";
 import { Action, ActionType, Context, ParseError } from "./types.ts";
 
 class SyntaxError extends Error { name = "SyntaxError"; }
@@ -28,9 +31,9 @@ export default class Parser {
     // Analyze the root grammar to extract the required data for bottom-up parsing
     const nextPossibleActionsByLastGrammar = this.grammarAnalyzer.analyzeGrammar(grammar);
 
-    // console.log(inspect({ nextPossibleActionsByLastGrammar })) // SROB
+    // console.log(inspect({ nextPossibleActionsByLastGrammar }));
 
-    const matchTerminal = memoize((offset: number, grammar: Grammar): number | null => {
+    const matchTerminal = memoize((offset: number, grammar: TerminalGrammar): number | null => {
       const remainingCode = code.substring(offset);
       let matchedCharsCount: number | null | undefined;
 
@@ -76,23 +79,36 @@ export default class Parser {
             const { type: actionType, grammar } = nextAction;
 
             if (actionType === ActionType.SHIFT) {
-              // We'll try to match a terminal at the current offset.
-              const nextOffset = context.offset + context.matchedCharsCount;
-              const matchedCharsCount: number | null = matchTerminal(nextOffset, grammar!);
-              if (matchedCharsCount !== null) {
-                const nextContext = { grammar, offset: nextOffset, matchedCharsCount, previous: context }
+              if (isTerminalGrammar(grammar)) {
+                // We'll try to match a terminal at the current offset.
+                const nextOffset = context.offset + context.matchedCharsCount;
+                const matchedCharsCount: number | null = matchTerminal(nextOffset, grammar!);
+                if (matchedCharsCount !== null) {
+                  const nextContext = { grammar, offset: nextOffset, matchedCharsCount, previous: context };
+                  nextContextsForContext.push(nextContext);
+                  lastActionByContext.set(nextContext, nextAction);
+                } else {
+                  // Syntax error
+                  recordError(context, nextAction);
+                }
+              }
+
+              else if (isOptionalGrammar(grammar)) {
+                // "matching" an optional grammar
+                const nextContext = { grammar, offset: context.offset + context.matchedCharsCount, matchedCharsCount: 0, previous: context };
                 nextContextsForContext.push(nextContext);
                 lastActionByContext.set(nextContext, nextAction);
-              } else {
-                // Syntax error
-                recordError(context, nextAction);
+              }
+
+              else {
+                throw new Error("Unhandled grammar type for Shift action");
               }
             }
 
             else if (actionType === ActionType.REDUCE) {
               // Reduce a non-terminal
 
-              if (isChoiceGrammar(grammar)) {
+              if (isChoiceGrammar(grammar) || isOptionalGrammar(grammar)) {
                 nextContextsForContext.push({
                   grammar,
                   offset: context.offset,

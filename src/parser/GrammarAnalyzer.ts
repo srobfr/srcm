@@ -1,6 +1,8 @@
 import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { SequenceGrammar } from "../grammar/GrammarTypes.ts";
 import { isTerminalGrammar } from "../grammar/GrammarTypes.ts";
+import { OptionalGrammar } from "../grammar/GrammarTypes.ts";
+import { TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isSequenceGrammar, TerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
 import mapSetAddBy from "../utils/mapSetAddBy.ts";
@@ -87,17 +89,17 @@ export default class GrammarAnalyzer {
     }
   }
 
-  private extractFirstPossibleTerminalsByGrammar(grammar: Grammar): Map<Grammar | null, Set<TerminalGrammar | null>> {
+  private extractFirstPossibleTerminalsByGrammar(grammar: Grammar): Map<Grammar | null, Set<TerminalOrOptionalGrammar>> {
     const walkParamsByGrammar = new Map<Grammar | null, Set<WalkParams>>();
-    const terminals = new Set<TerminalGrammar>();
+    const terminals = new Set<TerminalOrOptionalGrammar>();
 
     this.walkFullGrammar(grammar, (walkParams: WalkParams) => {
       const { grammar } = walkParams;
       mapSetAddBy(walkParamsByGrammar, grammar, [walkParams]);
-      if (isTerminalGrammar(grammar)) terminals.add(grammar);
+      if (isTerminalGrammar(grammar) || isOptionalGrammar(grammar)) terminals.add(grammar);
     });
 
-    const firstPossibleTerminalsByGrammar = new Map<Grammar | null, Set<TerminalGrammar | null>>();
+    const firstPossibleTerminalsByGrammar = new Map<Grammar | null, Set<TerminalOrOptionalGrammar>>();
     for (const terminal of terminals) mapSetAddBy(firstPossibleTerminalsByGrammar, terminal, [terminal]);
 
     const recursiveProcessGrammar = (grammar: Grammar | null) => {
@@ -107,13 +109,14 @@ export default class GrammarAnalyzer {
       for (const walkParams of (walkParamsByGrammar.get(grammar) ?? new Set())) {
         const { parent, indexInParent } = walkParams;
 
-        // SROB Vérifier que tous les siblings précédents ont un null dans leur firstPossibleTerminalsByGrammar
         // If we are not processing the first item of a sequence and a previous item is not optional => skip
         if (indexInParent > 0 &&
-          (parent as SequenceGrammar)?.value.find((siblingGrammar, siblingIndex) => (
-            siblingIndex < indexInParent && // Previous
-            !(firstPossibleTerminalsByGrammar.get(siblingGrammar) ?? new Set<TerminalGrammar | null>()).has(null) // Not optional
-          ))) {
+          (parent as SequenceGrammar)?.value.find((siblingGrammar, siblingIndex) => {
+            if (!(siblingIndex < indexInParent)) return false; // Previous
+            const firstPossibleTerminals = Array.from(firstPossibleTerminalsByGrammar.get(siblingGrammar) ?? new Set<TerminalOrOptionalGrammar>());
+            const hasOptionalFirstTerminal = firstPossibleTerminals.find(terminal => isOptionalGrammar(terminal));
+            return !hasOptionalFirstTerminal; // Not optional
+          })) {
           continue;
         }
 
@@ -129,7 +132,10 @@ export default class GrammarAnalyzer {
     return firstPossibleTerminalsByGrammar;
   }
 
-  private extractNextPossibleActionsByLastGrammar(grammar: Grammar, firstPossibleTerminalsByGrammar: Map<Grammar | null, Set<TerminalGrammar | null>>): Map<Grammar | null, Set<Action>> {
+  private extractNextPossibleActionsByLastGrammar(
+    grammar: Grammar,
+    firstPossibleTerminalsByGrammar: Map<Grammar | null, Set<TerminalOrOptionalGrammar>>
+  ): Map<Grammar | null, Set<Action>> {
     const nextPossibleActionsByLastGrammar = new Map<Grammar | null, Set<Action>>();
 
     this.walkFullGrammar(grammar, (walkParams: WalkParams) => {
@@ -140,6 +146,7 @@ export default class GrammarAnalyzer {
         mapSetAddBy(
           nextPossibleActionsByLastGrammar, parent,
           Array.from(firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<Grammar>()).map(
+            // SROB gérer le type optional
             subGrammar => action(ActionType.SHIFT, subGrammar)
           )
         );

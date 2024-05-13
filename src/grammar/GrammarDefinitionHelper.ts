@@ -85,9 +85,8 @@ export default class GrammarDefinitionHelper {
     return { ...props, type: "choice", value: value.map(v => this.#g(v)) };
   }
 
-  #optional(value: GrammarDef, props?: Partial<Grammar>): ChoiceGrammar {
-    // return { ...props, type: "optional", value: this.#g(value) }; // SROB
-    return { ...props, type: "choice", value: [this.#g(value), this.#g("")] };
+  #optional(value: GrammarDef, props?: Partial<Grammar>): OptionalGrammar {
+    return { ...props, type: "optional", value: this.#g(value) };
   }
 
   #repeat(value: GrammarDef, props?: Partial<Grammar>): RepeatGrammar {

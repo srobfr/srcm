@@ -67,8 +67,7 @@ Deno.test({
   name: "GrammarAnalyzer / Optional", fn() {
     const grammar = g.optional("foo");
     const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
-    console.log(inspect(nextPossibleActionsByLastGrammar)) // SROB
-    assertEquals(stableInspect(nextPossibleActionsByLastGrammar), ``);
+    assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[{"type":"shift","grammar":"#ref0"},{"type":"shift","grammar":"#ref2"}],"<{\\"type\\":\\"optional\\",\\"value\\":{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"}}>":[{"type":"accept","grammar":null}],"<\\"#ref1\\">":[{"type":"reduce","grammar":"#ref6"}]}`);
   }
 });
 

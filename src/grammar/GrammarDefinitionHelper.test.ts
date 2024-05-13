@@ -99,8 +99,8 @@ Deno.test({
     const foo = g.optional("Foo", { id: "foo" });
     assertEquals(foo, {
       id: "foo",
-      type: "choice",
-      value: [{ type: "string", value: "Foo" }, { type: "string", value: "" }],
+      type: "optional",
+      value: { type: "string", value: "Foo" },
     });
   }
 });
