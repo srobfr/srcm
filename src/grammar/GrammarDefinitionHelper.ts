@@ -1,5 +1,5 @@
 import { RuntimeAdapter } from "../runtimes/types.ts";
-import { OptionalGrammar } from "./GrammarTypes.ts";
+import { OptionalGrammar, RegExpGrammar, StringGrammar } from "./GrammarTypes.ts";
 import { SequenceGrammar } from "./GrammarTypes.ts";
 import { RepeatGrammar } from "./GrammarTypes.ts";
 import { ChoiceGrammar } from "./GrammarTypes.ts";
@@ -28,15 +28,14 @@ export default class GrammarDefinitionHelper {
   }
 
   /** Helper to converts shorthand grammar formats into full grammar objects */
+  #g<TGrammar extends Grammar>(value: TGrammar, props?: Partial<Grammar>): TGrammar;
   #g(value: TemplateStringsArray, ...args: Array<GrammarDef>): SequenceGrammar; // Typically called like this : g`Foo${"bar"}plop`
   #g(value: OrGrammarDef, props?: Partial<Grammar>): ChoiceGrammar;
-  #g<TGrammar extends Grammar>(value: TGrammar, props?: Partial<Grammar>): TGrammar;
-  #g(value: GrammarDef, props?: Partial<Grammar>): Grammar; // Typically called like this : g("Foo", {id: "foo"})
-  #g(
-    value: string | TemplateStringsArray | GrammarDef,
-    props?: GrammarDef | { [key: string]: any },
-    ...args: Array<GrammarDef>
-  ): Grammar {
+  #g(value: Array<GrammarDef>, props?: Partial<Grammar>): SequenceGrammar;
+  #g(value: string, props?: Partial<Grammar>): StringGrammar;
+  #g(value: RegExp, props?: Partial<Grammar>): RegExpGrammar;
+  #g(value: GrammarDef, props?: Partial<Grammar>): Grammar;
+  #g(value: string | TemplateStringsArray | GrammarDef, props?: GrammarDef | { [key: string]: any }, ...args: Array<GrammarDef>): Grammar {
     const r = this.gCache?.get(value);
     if (r) return r as Grammar;
 

@@ -95,3 +95,26 @@ Deno.test({
   }
 });
 
+Deno.test({
+  name: "Parser / Infinite recursion", async fn(t) {
+    await t.step("prefix", () => {
+      const oo = g(["o"]);
+      oo.value.unshift(oo);
+      const foo = g`F${oo}`;
+      assertThrows(() => { parse(`Foo`, foo); }, Error, `No next action found for grammar : {"type":"string","value":"F"}`);
+    });
+
+    await t.step("infix", () => {
+      const grammar = g([]);
+      grammar.value.push(grammar);
+      assertThrows(() => { parse(`Foo`, grammar); }, Error, `No next action found for grammar : null`);
+    });
+
+    await t.step("Postfix", () => {
+      const oo = g(["o"]);
+      oo.value.push(oo);
+      const foo = g`F${oo}`;
+      assertThrows(() => { parse(`Foo`, foo); }, Error, `   ^Expected one of ["o"]`);
+    });
+  }
+});

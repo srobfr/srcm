@@ -3,9 +3,12 @@ import { SequenceGrammar } from "../grammar/GrammarTypes.ts";
 import { isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { OptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { isRepeatGrammar } from "../grammar/GrammarTypes.ts";
+import { isStringGrammar } from "../grammar/GrammarTypes.ts";
+import { isRegExpGrammar } from "../grammar/GrammarTypes.ts";
 import { TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isSequenceGrammar, TerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
+import stableInspect from "../utils/inspect.ts";
 import mapSetAddBy from "../utils/mapSetAddBy.ts";
 import memoize from "../utils/memoize.ts";
 import { Action, ActionType } from "./types.ts";
@@ -35,6 +38,7 @@ export default class GrammarAnalyzer {
     // Find first terminals for each grammar
     const firstPossibleTerminalsByGrammar = this.extractFirstPossibleTerminalsByGrammar(grammar);
     const nextPossibleActionsByLastGrammar = this.extractNextPossibleActionsByLastGrammar(grammar, firstPossibleTerminalsByGrammar);
+
     return nextPossibleActionsByLastGrammar;
   }
 
@@ -90,6 +94,14 @@ export default class GrammarAnalyzer {
     }
   }
 
+  private checkTerminal(grammar: TerminalGrammar) {
+    if (isStringGrammar(grammar) && grammar.value === "") throw new Error("Empty string grammar is not allowed. Use optional instead.");
+    if (isRegExpGrammar(grammar)) {
+      if (!grammar.value.toString().startsWith("/^")) throw new Error(`Regexp grammar should start with "/^" : ${grammar.value.toString()}`);
+      if ("".match(grammar.value)) throw new Error(`Regexp grammar should not match an empty string : ${grammar.value.toString()}. Use optional instead.`);
+    }
+  }
+
   private extractFirstPossibleTerminalsByGrammar(grammar: Grammar): Map<Grammar | null, Set<TerminalOrOptionalGrammar>> {
     const walkParamsByGrammar = new Map<Grammar | null, Set<WalkParams>>();
     const terminals = new Set<TerminalOrOptionalGrammar>();
@@ -101,7 +113,12 @@ export default class GrammarAnalyzer {
     });
 
     const firstPossibleTerminalsByGrammar = new Map<Grammar | null, Set<TerminalOrOptionalGrammar>>();
-    for (const terminal of terminals) mapSetAddBy(firstPossibleTerminalsByGrammar, terminal, [terminal]);
+    for (const terminal of terminals) {
+      mapSetAddBy(firstPossibleTerminalsByGrammar, terminal, [terminal]);
+
+      // While we are scanning the terminals, check them
+      if (isTerminalGrammar(terminal)) this.checkTerminal(terminal);
+    }
 
     const recursiveProcessGrammar = (grammar: Grammar | null) => {
       const firstTerminals = firstPossibleTerminalsByGrammar.get(grammar) ?? new Set();
@@ -193,6 +210,12 @@ export default class GrammarAnalyzer {
         console.trace(`Unhandled next actions for parent : ${inspect(parent)}`);
       }
     });
+
+    // Look for grammar errors
+    for (const [grammar, actions] of nextPossibleActionsByLastGrammar.entries()) {
+      if (actions.size > 0) continue;
+      throw new Error(`No next action found for grammar : ${stableInspect(grammar?.id ?? grammar)}`);
+    }
 
     return nextPossibleActionsByLastGrammar;
   }

@@ -5,6 +5,7 @@ import DenoRuntimeAdapter from "../runtimes/DenoRuntimeAdapter.ts";
 import GrammarAnalyzer from "./GrammarAnalyzer.ts";
 import stableInspect from "../utils/inspect.ts";
 import { SequenceGrammar } from "../grammar/GrammarTypes.ts";
+import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 
 const runtime = new DenoRuntimeAdapter();
 const { g } = new GrammarDefinitionHelper(runtime);
@@ -35,17 +36,15 @@ Deno.test("GrammarAnalyzer / Operator", () => {
 });
 
 Deno.test("GrammarAnalyzer / Infinite recursion", () => {
-  const grammar = g([]) as SequenceGrammar;
+  const grammar = g([]);
   grammar.value.push(grammar);
-  const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
-  assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[],"<{\\"type\\":\\"sequence\\",\\"value\\":[\\"#ref0\\"]}>":[{"type":"accept","grammar":null},{"type":"reduce","grammar":"#ref2"}]}`);
+  assertThrows(() => { analyzer.analyzeGrammar(grammar); }, Error, `No next action found for grammar : null`);
 });
 
 Deno.test("GrammarAnalyzer / Infinite prefix recursion", () => {
   const grammar = g(["foo"]) as SequenceGrammar;
   grammar.value.unshift(grammar);
-  const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
-  assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[],"<{\\"type\\":\\"sequence\\",\\"value\\":[\\"#ref0\\",{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"}]}>":[{"type":"accept","grammar":null},{"type":"shift","grammar":"#ref4"}],"<\\"#ref3\\">":[{"type":"reduce","grammar":"#ref2"}]}`);
+  assertThrows(() => { analyzer.analyzeGrammar(grammar); }, Error, `No next action found for grammar : null`);
 });
 
 Deno.test("GrammarAnalyzer / Infinite postfix recursion", () => {
@@ -77,4 +76,19 @@ Deno.test({
     const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
     assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[{"type":"shift","grammar":"#ref2"}],"<{\\"type\\":\\"repeat\\",\\"value\\":{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"}}>":[{"type":"accept","grammar":null}],"<\\"#ref1\\">":[{"type":"reduce","grammar":"#ref0"},{"type":"shift","grammar":"#ref6"}]}`);
   }
+});
+
+Deno.test("GrammarAnalyzer / Empty string", () => {
+  const grammar = g("");
+  assertThrows(() => { analyzer.analyzeGrammar(grammar); }, Error, `Empty string grammar is not allowed. Use optional instead.`);
+});
+
+Deno.test("GrammarAnalyzer / Regex matching empty string", () => {
+  const grammar = g(/^.*/);
+  assertThrows(() => { analyzer.analyzeGrammar(grammar); }, Error, `Regexp grammar should not match an empty string : /^.*/. Use optional instead.`);
+});
+
+Deno.test("GrammarAnalyzer / Regex start", () => {
+  const grammar = g(/.*/);
+  assertThrows(() => { analyzer.analyzeGrammar(grammar); }, Error, `Regexp grammar should start with "/^" : /.*/`);
 });
