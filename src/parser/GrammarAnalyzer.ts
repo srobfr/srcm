@@ -1,12 +1,4 @@
-import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
-import { SequenceGrammar } from "../grammar/GrammarTypes.ts";
-import { isTerminalGrammar } from "../grammar/GrammarTypes.ts";
-import { OptionalGrammar } from "../grammar/GrammarTypes.ts";
-import { isRepeatGrammar } from "../grammar/GrammarTypes.ts";
-import { isStringGrammar } from "../grammar/GrammarTypes.ts";
-import { isRegExpGrammar } from "../grammar/GrammarTypes.ts";
-import { TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
-import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isSequenceGrammar, TerminalGrammar } from "../grammar/GrammarTypes.ts";
+import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isOptionalGrammar, isRegExpGrammar, isRepeatGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar, SequenceGrammar, TerminalGrammar, TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
 import stableInspect from "../utils/inspect.ts";
 import mapSetAddBy from "../utils/mapSetAddBy.ts";

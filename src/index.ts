@@ -13,5 +13,3 @@ const parser = new Parser(runtimeAdapter, grammarAnalyzer, domBuilder);
 
 export const g = grammarDefinitionHelper.g
 export const parse = parser.parse;
-
-// SROB

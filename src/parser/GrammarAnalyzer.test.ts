@@ -10,7 +10,6 @@ import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws
 const runtime = new DenoRuntimeAdapter();
 const { g } = new GrammarDefinitionHelper(runtime);
 const analyzer = new GrammarAnalyzer(runtime);
-const { inspect } = runtime;
 
 Deno.test("GrammarAnalyzer / Simple Grammar", () => {
   const foo = g("Foo");

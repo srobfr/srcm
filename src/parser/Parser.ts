@@ -1,14 +1,10 @@
 import DomBuilder from "../dom/DomBuilder.ts";
-import Node from "../dom/Node.ts";
-import { isRepeatGrammar } from "../grammar/GrammarTypes.ts";
-import { isOptionalGrammar } from "../grammar/GrammarTypes.ts";
-import { TerminalGrammar } from "../grammar/GrammarTypes.ts";
-import { Grammar, isChoiceGrammar, isRegExpGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
+import Node, { INode } from "../dom/Node.ts";
+import { Grammar, TerminalGrammar, inspectGrammar, isChoiceGrammar, isOptionalGrammar, isRegExpGrammar, isRepeatGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
 import buildCache from "../utils/cache.ts";
 import memoize from "../utils/memoize.ts";
 import GrammarAnalyzer from "./GrammarAnalyzer.ts";
-import inspectContext from "./inspectContext.ts";
 import { Action, ActionType, Context, ParseError } from "./types.ts";
 
 class SyntaxError extends Error { name = "SyntaxError"; }
@@ -23,7 +19,7 @@ export default class Parser {
   public parse = this.#parse.bind(this);
 
   /** Parses code against a given grammar */
-  #parse(code: string, grammar: Grammar): Node {
+  #parse(code: string, grammar: Grammar): INode {
     const { inspect } = this.runtime;
 
     /** Used to optimize contexts forest by keeping only the first context matching the (grammar, offset, matchedCharsCount) tuple */
@@ -76,7 +72,8 @@ export default class Parser {
 
           const nextActions = nextPossibleActionsByLastGrammar.get(context.grammar) ?? new Set();
           for (const nextAction of nextActions) {
-            // console.log(`Processing ${inspectContext(context, code)}`); // SROB
+            // console.log(`Processing ${inspectContext(context, code)}`);
+
             const { type: actionType, grammar } = nextAction;
 
             if (actionType === ActionType.SHIFT) {
@@ -204,7 +201,7 @@ export default class Parser {
           // console.debug(
           //   nextContextsForContext.length > 0 ? nextContextsForContext.map(c => `${inspectContext(context, code)} => ${inspectContext(c, code)}\n`).join("")
           //     : `${inspectContext(context, code)} => ❌`
-          // ); // SROB
+          // );
 
           nextContexts.push(...nextContextsForContext);
         }
@@ -230,8 +227,7 @@ export default class Parser {
       function throwSyntaxError(lastErrors: Array<ParseError>, code: string) {
         const expected = Array.from(new Set(lastErrors.map(({ action }) => {
           return action.type === ActionType.ACCEPT ? "<EOF>"
-            : action.grammar?.id ? `<${action.grammar?.id}>`
-              : inspect(action.grammar?.value);
+            : inspectGrammar(action.grammar);
         })));
 
         const offset = lastErrors[0].context.offset + lastErrors[0].context.matchedCharsCount;
@@ -240,11 +236,11 @@ export default class Parser {
         const lastMatchedRow = m![1].match(/.+$/)?.[0] ?? "";
         const remainingCode = m![2];
         const column = (lastMatchedRow.length ?? 0) + 1;
-        throw new SyntaxError(`Syntax error on line ${line}, columns ${column}:\n${lastMatchedRow}${remainingCode}\n${" ".repeat(lastMatchedRow.length)}^Expected one of [${expected.join(", ")}]`); // SROB
+        throw new SyntaxError(`Syntax error on line ${line}, columns ${column}:\n${lastMatchedRow}${remainingCode}\n${" ".repeat(lastMatchedRow.length)}^Expected one of [${expected.join(", ")}]`);
       }
 
       if (!success.length) throwSyntaxError(lastErrors, code);
-      // console.log(inspect(success.map(context => inspectContext(context, code)))); // SROB
+      // console.log(inspect(success.map(context => inspectContext(context, code))));
 
       // Hydrate & return pseudo-dom
       return this.domBuilder.build(success[0], this.parse, code);

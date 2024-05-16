@@ -1,3 +1,6 @@
+import INode from "../dom/Node.ts";
+import stableInspect from "../utils/inspect.ts";
+
 export type GrammarBase = {
   /** Simplifies the grammar node identification, for example for debugging */
   id?: string;
@@ -5,6 +8,10 @@ export type GrammarBase = {
   precedence?: number;
   /** Allows to manage precedence between two occurrences of this grammar. Default is false (reduce first, then shift) */
   rightToLeft?: boolean;
+  /** Custom node class. Must extend Node. */
+  nodeClass?: new (...args: Array<any>) => INode;
+  /** Default text for this grammar */
+  default?: string;
 };
 
 // Terminal grammar types
@@ -13,7 +20,7 @@ export const isStringGrammar = (value: any): value is StringGrammar => value?.ty
 export type RegExpGrammar = { type: "regexp", value: RegExp } & GrammarBase;
 export const isRegExpGrammar = (value: any): value is RegExpGrammar => value?.type === "regexp";
 
-export type TerminalGrammar = StringGrammar | RegExpGrammar;
+export type TerminalGrammar = (StringGrammar) | (RegExpGrammar);
 export const isTerminalGrammar = (value: any): value is TerminalGrammar => isStringGrammar(value) || isRegExpGrammar(value);
 
 // Non-terminal grammar types
@@ -36,3 +43,8 @@ export const isNonTerminalGrammar = (value: any): value is NonTerminalGrammar =>
 export type Grammar = (TerminalGrammar | NonTerminalGrammar);
 export const isGrammar = (value: any): value is Grammar => isTerminalGrammar(value) || isNonTerminalGrammar(value);
 
+export function inspectGrammar(grammar: Grammar | null): string {
+  return grammar === null ? "<EOF>"
+    : grammar.id ? `<${grammar.id}>`
+    : stableInspect(grammar.value);
+}

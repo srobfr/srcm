@@ -2,9 +2,10 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
 import { g, parse } from "../index.ts";
 import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
+import Node from "./Node.ts";
 
 Deno.test({
-  name: "Node", async fn(t) {
+  name: "BaseNode", async fn(t) {
     const foo = g("Foo", { id: "foo" });
     const bar = g(/^Bar/i, { id: "bar" });
     const grammar = g.or([foo, bar]);
@@ -71,5 +72,24 @@ Deno.test({
       assertEquals($any.xml(), `<any>&lt;&amp;&gt;</any>`);
       assertEquals($any.text(), `<&>`);
     });
+  }
+});
+
+Deno.test({
+  name: "BaseNode / Custom Node class", fn() {
+    const grammar = g(/^.+/, {
+      id: "foo",
+      nodeClass: class FooNode extends Node {
+        hello() {
+          this.text("Hello world!");
+        }
+      }
+    });
+
+    const $ = parse("Test", grammar);
+
+    assertEquals($.xml(), `<foo>Test</foo>`);
+    $.hello();
+    assertEquals($.xml(), `<foo>Hello world!</foo>`);
   }
 });
