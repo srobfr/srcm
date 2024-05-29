@@ -37,7 +37,7 @@ export default class GrammarDefinitionHelper {
   #g(value: GrammarDef, props?: Partial<Grammar>): Grammar;
   #g(value: string | TemplateStringsArray | GrammarDef, props?: GrammarDef | { [key: string]: any }, ...args: Array<GrammarDef>): Grammar {
     const r = this.gCache?.get(value);
-    if (r) return r as Grammar;
+    if (r) return r as Grammar; // SROB
 
     if (Array.isArray(value) && isGrammarDef(props)) {
       args.unshift(props as GrammarDef);

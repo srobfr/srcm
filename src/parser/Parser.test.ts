@@ -120,18 +120,16 @@ Deno.test({
 });
 
 Deno.test({
-  name: "Parser / repeat bug on syntax error", async fn(t) {
-    await t.step("prefix", () => {
-      const foo = g("foo", { id: "foo" });
-      const grammar = g`(${g.repeat(foo)}|${foo})`;
+  name: "Parser / repeat bug on syntax error", fn(t) {
+    const foo = g("foo", { id: "foo" });
+    const grammar = g`(${g.repeat(foo)},${foo})`;
 
-      try {
-        parse(    `(foo|foofoo)`, grammar);
-      } catch(err) {
-        assertEquals(err.message, `Syntax error on line 1, columns 9:
-(foo|foofoo)
+    try {
+      parse(`(foo,foofoo)`, grammar);
+    } catch (err) {
+      assertEquals(err.message, `Syntax error on line 1, columns 9:
+(foo,foofoo)
         ^Expected one of [")"]`);
-      }
-    });
+    }
   }
 });

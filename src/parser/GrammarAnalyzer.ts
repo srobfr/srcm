@@ -188,7 +188,7 @@ export default class GrammarAnalyzer {
         }
 
         if (indexInParent > 0) {
-          // Shift from previous grammar to the first possible non-terminals of this one
+          // Shift from previous grammar to the first possible terminals of this one
           mapSetAddBy(
             nextPossibleActionsByLastGrammar, parent.value[indexInParent - 1],
             Array.from(firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<Grammar>()).map(
