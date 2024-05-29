@@ -1,4 +1,9 @@
 {
+  "name": "@srobfr/srcm",
+  "version": "0.2.0",
+  "description": "Generic code modification tool",
+  "author": "Simon Robert",
+  "license": "MIT",
   "lint": {
     "rules": {
       "exclude": [

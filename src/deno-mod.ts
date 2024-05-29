@@ -11,5 +11,5 @@ const grammarAnalyzer = new GrammarAnalyzer(runtimeAdapter);
 const domBuilder = new DomBuilder();
 const parser = new Parser(runtimeAdapter, grammarAnalyzer, domBuilder);
 
-export const g = grammarDefinitionHelper.g
+export const g = grammarDefinitionHelper.g;
 export const parse = parser.parse;

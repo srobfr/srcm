@@ -1,14 +1,14 @@
 {
   "name": "srcm",
-  "version": "0.0.12",
+  "version": "0.2.0",
   "description": "Generic code modification tool",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "scripts": {
-    "test": "make test"
-  },
   "author": "Simon Robert",
   "license": "MIT",
+  "scripts": {
+    "test": "echo 'No tests yet on nodejs. Try using Deno.'; false",
+    "build": "tsc"
+  },
+  "main": "src/node-mod.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/srobfr/srcm.git"
@@ -20,5 +20,9 @@
   "bugs": {
     "url": "https://github.com/srobfr/srcm/issues"
   },
-  "homepage": "https://github.com/srobfr/srcm#readme"
+  "homepage": "https://github.com/srobfr/srcm#readme",
+  "devDependencies": {
+    "tsc": "^2.0.4",
+    "typescript": "^5.4.5"
+  }
 }

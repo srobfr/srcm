@@ -1,4 +1,4 @@
-# SRCM [![NPM version](https://badge.fury.io/js/srcm.svg)](http://badge.fury.io/js/srcm) [![Build Status](https://travis-ci.org/srobfr/srcm.svg?branch=master)](https://travis-ci.org/srobfr/srcm)
+# SRCM [![NPM version](https://badge.fury.io/js/srcm.svg)](http://badge.fury.io/js/srcm)
 
 > A generic code modification tool
 
