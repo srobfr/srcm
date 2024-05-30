@@ -20,6 +20,20 @@ export const isGrammarDef = (value: any): value is GrammarDef => (
 
 type EmptyObject = Record<string | number | symbol, never>;
 
+type G = {
+  <TGrammar extends Grammar>(value: TGrammar, props?: Partial<Grammar>): TGrammar;
+  (value: TemplateStringsArray, ...args: Array<GrammarDef>): SequenceGrammar; // Typically called like this : g`Foo${"bar"}plop`
+  (value: OrGrammarDef, props?: Partial<Grammar>): ChoiceGrammar;
+  (value: Array<GrammarDef>, props?: Partial<Grammar>): SequenceGrammar;
+  (value: string, props?: Partial<Grammar>): StringGrammar;
+  (value: RegExp, props?: Partial<Grammar>): RegExpGrammar;
+  (value: GrammarDef, props?: Partial<Grammar>): Grammar;
+} & {
+  or: (value: Array<GrammarDef>, props?: Partial<Grammar>) => ChoiceGrammar,
+  optional: (value: GrammarDef, props?: Partial<Grammar>) => OptionalGrammar,
+  repeat: (value: GrammarDef, props?: Partial<Grammar>) => RepeatGrammar,
+};
+
 export default class GrammarDefinitionHelper {
   /** Allows to reuse previous results + handles infinite recursions */
   private gCache: Map<any, Grammar | EmptyObject> | null = null;
@@ -27,17 +41,9 @@ export default class GrammarDefinitionHelper {
   constructor(private readonly runtimeAdapter: RuntimeAdapter) {
   }
 
-  /** Helper to converts shorthand grammar formats into full grammar objects */
-  #g<TGrammar extends Grammar>(value: TGrammar, props?: Partial<Grammar>): TGrammar;
-  #g(value: TemplateStringsArray, ...args: Array<GrammarDef>): SequenceGrammar; // Typically called like this : g`Foo${"bar"}plop`
-  #g(value: OrGrammarDef, props?: Partial<Grammar>): ChoiceGrammar;
-  #g(value: Array<GrammarDef>, props?: Partial<Grammar>): SequenceGrammar;
-  #g(value: string, props?: Partial<Grammar>): StringGrammar;
-  #g(value: RegExp, props?: Partial<Grammar>): RegExpGrammar;
-  #g(value: GrammarDef, props?: Partial<Grammar>): Grammar;
-  #g(value: string | TemplateStringsArray | GrammarDef, props?: GrammarDef | { [key: string]: any }, ...args: Array<GrammarDef>): Grammar {
+  #g = (value: any, props?: any, ...args: Array<any>): any => {
     const r = this.gCache?.get(value);
-    if (r) return r as Grammar; // SROB
+    if (r) return r;
 
     if (Array.isArray(value) && isGrammarDef(props)) {
       args.unshift(props as GrammarDef);
@@ -66,8 +72,8 @@ export default class GrammarDefinitionHelper {
       else if (typeof value === "string") Object.assign(r, { type: "string", value });
       else if (value instanceof RegExp) Object.assign(r, { type: "regexp", value });
       else if (typeof value === "function") Object.assign(r, { type: "function", value });
-      else if (isOrGrammarDef(value)) Object.assign(r, { type: "choice", value: value.or.map(v => this.g(v)) });
-      else if (Array.isArray(value)) Object.assign(r, { type: "sequence", value: value.map(v => this.g(v)) });
+      else if (isOrGrammarDef(value)) Object.assign(r, { type: "choice", value: value.or.map(v => this.#g(v)) });
+      else if (Array.isArray(value)) Object.assign(r, { type: "sequence", value: value.map(v => this.#g(v)) });
 
       if (!isGrammar(r)) {
         throw new Error(`Unable to build a grammar: ${this.runtimeAdapter.inspect({ value, templateArgs: args })}`);
@@ -80,22 +86,22 @@ export default class GrammarDefinitionHelper {
     }
   }
 
-  #or(value: Array<GrammarDef>, props?: Partial<Grammar>): ChoiceGrammar {
+  or = (value: Array<GrammarDef>, props?: Partial<Grammar>): ChoiceGrammar => {
     return { ...props, type: "choice", value: value.map(v => this.#g(v)) };
   }
 
-  #optional(value: GrammarDef, props?: Partial<Grammar>): OptionalGrammar {
+  optional = (value: GrammarDef, props?: Partial<Grammar>): OptionalGrammar => {
     return { ...props, type: "optional", value: this.#g(value) };
   }
 
-  #repeat(value: GrammarDef, props?: Partial<Grammar>): RepeatGrammar {
+  repeat = (value: GrammarDef, props?: Partial<Grammar>): RepeatGrammar => {
     return { ...props, type: "repeat", value: this.#g(value) };
   }
 
   /** Helper to converts shorthand grammar formats into full grammar objects */
-  public g = Object.assign(this.#g.bind(this), {
-    or: this.#or.bind(this),
-    optional: this.#optional.bind(this),
-    repeat: this.#repeat.bind(this),
+  public g: G = Object.assign(this.#g, {
+    or: this.or,
+    optional: this.optional,
+    repeat: this.repeat,
   });
 }

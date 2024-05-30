@@ -2,8 +2,13 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "esnext",
+    "outDir": "dist",
+    "declaration": true,
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "noErrorTruncation": true
   },
   "exclude": [
     "node_modules"
-  ]
+  ],
 }

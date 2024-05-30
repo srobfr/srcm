@@ -1,3 +1,5 @@
+SHELL:=/bin/bash -O globstar
+
 help: ## Shows an help screen
 	@echo "SRCM"
 	@echo "Defined make targets :"
@@ -11,10 +13,18 @@ npmDir?=npm
 npm-build: ## Builds a npm version
 	-rm -rf $(npmDir)
 	mkdir -vp $(npmDir)
-	cp -v package.json $(npmDir)/
+	cp -vr package.json tsconfig.json src $(npmDir)/
+	rm -vf $(npmDir)/**/*.test.ts
+	find $(npmDir) -type f -name '*.ts' | grep -vF node_modules | xargs sed -ri 's/\.ts";/";/g'
+	cd $(npmDir) && npm i && ./node_modules/.bin/tsc
 
-publish-patch: build test ## Publish a new version on NPM, with PATCH semver level
-	npm version patch
+npm-publish: test npm-build
+npm-publish: ## Builds and publish on npm
+	cd $(npmDir) && npm publish
+
+
+bump-patch: test ## Tags & push a new patch version
+	deno run -A https://deno.land/x/version/index.ts patch
 	npm publish
 	git push origin "$$(git rev-parse --abbrev-ref HEAD)"
 	git push origin --tags

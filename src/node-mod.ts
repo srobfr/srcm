@@ -1,10 +1,10 @@
-import DenoRuntimeAdapter from "./runtimes/DenoRuntimeAdapter.ts";
-import GrammarDefinitionHelper from "./grammar/GrammarDefinitionHelper.ts";
-import Parser from "./parser/Parser.ts";
-import GrammarAnalyzer from "./parser/GrammarAnalyzer.ts";
 import DomBuilder from "./dom/DomBuilder.ts";
+import GrammarDefinitionHelper from "./grammar/GrammarDefinitionHelper.ts";
+import GrammarAnalyzer from "./parser/GrammarAnalyzer.ts";
+import Parser from "./parser/Parser.ts";
+import NodeRuntimeAdapter from "./runtimes/NodeRuntimeAdapter.ts";
 
-const runtimeAdapter = new DenoRuntimeAdapter();
+const runtimeAdapter = new NodeRuntimeAdapter();
 
 const grammarDefinitionHelper = new GrammarDefinitionHelper(runtimeAdapter);
 const grammarAnalyzer = new GrammarAnalyzer(runtimeAdapter);

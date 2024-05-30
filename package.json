@@ -8,7 +8,7 @@
     "test": "echo 'No tests yet on nodejs. Try using Deno.'; false",
     "build": "tsc"
   },
-  "main": "src/node-mod.ts",
+  "main": "dist/node-mod.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/srobfr/srcm.git"
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/srobfr/srcm#readme",
   "devDependencies": {
-    "tsc": "^2.0.4",
+    "@types/node": "^20.12.12",
     "typescript": "^5.4.5"
   }
 }

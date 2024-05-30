@@ -16,10 +16,8 @@ export default class Parser {
     private readonly domBuilder: DomBuilder,
   ) { }
 
-  public parse = this.#parse.bind(this);
-
   /** Parses code against a given grammar */
-  #parse(code: string, grammar: Grammar): INode {
+  public parse = (code: string, grammar: Grammar): INode => {
     const { inspect } = this.runtime;
 
     /** Used to optimize contexts forest by keeping only the first context matching the (grammar, offset, matchedCharsCount) tuple */
