@@ -25,12 +25,9 @@ npm-publish: ## Builds and publish on npm
 version = $(shell jq -r .version deno.json)
 patchVersion = $(shell deno run -A npm:semver -i patch $(version))
 bump-patch: test ## Tags & push a new patch version
+	test "" = "$$(git status -suno)" || { git status -suno; echo "First commit your changes!"; false; }
 	# Bumping patch $(version) => $(patchVersion)
 	jq '.version = "$(patchVersion)"' deno.json | sponge deno.json
 	jq '.version = "$(patchVersion)"' package.json | sponge package.json
 	git add deno.json package.json
-
-
-	# npm publish
-	# git push origin "$$(git rev-parse --abbrev-ref HEAD)"
-	# git push origin --tags
+	git commit -m "$(patchVersion)" && git tag "v$(patchVersion)"
