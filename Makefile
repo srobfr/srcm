@@ -9,6 +9,9 @@ test: ## Runs tests
 	# Translating \ to \\ to easy copy/paste of failed tests using stableInspect() comparisons
 	deno test src/ | sed 's:\\:\\\\:g'
 
+fail-if-pending-changes:
+	test "" = "$$(git status -suno)" || { git status -suno; echo "First commit your changes!"; false; }
+
 npmDir?=npm
 npm-build: ## Builds a npm version
 	-rm -rf $(npmDir)
@@ -18,16 +21,22 @@ npm-build: ## Builds a npm version
 	find $(npmDir) -type f -name '*.ts' | grep -vF node_modules | xargs sed -ri 's/\.ts";/";/g'
 	cd $(npmDir) && npm i && ./node_modules/.bin/tsc
 
-npm-publish: test npm-build
-npm-publish: ## Builds and publish on npm
-	cd $(npmDir) && npm publish
-
+level ?= patch
+origin ?= origin
 version = $(shell jq -r .version deno.json)
-patchVersion = $(shell deno run -A npm:semver -i patch $(version))
-bump-patch: test ## Tags & push a new patch version
-	test "" = "$$(git status -suno)" || { git status -suno; echo "First commit your changes!"; false; }
+patchVersion = $(shell deno run -A npm:semver -i $(level) $(version))
+
+bump: fail-if-pending-changes test ## Tags & push a new version
 	# Bumping patch $(version) => $(patchVersion)
 	jq '.version = "$(patchVersion)"' deno.json | sponge deno.json
 	jq '.version = "$(patchVersion)"' package.json | sponge package.json
 	git add deno.json package.json
 	git commit -m "$(patchVersion)" && git tag "v$(patchVersion)"
+	git push $(origin) "v$(patchVersion)"
+
+npm-publish: test npm-build
+npm-publish: ## Builds and publish on npm
+	cd $(npmDir) && npm publish
+
+publish: bump npm-publish
+publish: ## Bump, build, commit, push and publish on npm
