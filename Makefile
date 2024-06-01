@@ -16,7 +16,7 @@ npmDir?=npm
 npm-build: ## Builds a npm version
 	-rm -rf $(npmDir)
 	mkdir -vp $(npmDir)
-	cp -vr package.json tsconfig.json src $(npmDir)/
+	cp -vr README.md LICENSE package.json tsconfig.json src $(npmDir)/
 	rm -vf $(npmDir)/**/*.test.ts
 	find $(npmDir) -type f -name '*.ts' | grep -vF node_modules | xargs sed -ri 's/\.ts";/";/g'
 	cd $(npmDir) && npm i && ./node_modules/.bin/tsc
