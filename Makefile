@@ -6,7 +6,7 @@ help: ## Shows an help screen
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 test: ## Runs tests
-  # Translating \ to \\ to easy copy/paste of failed tests using stableInspect() comparisons
+	# Translating \ to \\ to easy copy/paste of failed tests using stableInspect() comparisons
 	deno test src/ | sed 's:\\:\\\\:g'
 
 npmDir?=npm
@@ -22,9 +22,15 @@ npm-publish: test npm-build
 npm-publish: ## Builds and publish on npm
 	cd $(npmDir) && npm publish
 
-
+version = $(shell jq -r .version deno.json)
+patchVersion = $(shell deno run -A npm:semver -i patch $(version))
 bump-patch: test ## Tags & push a new patch version
-	deno run -A https://deno.land/x/version/index.ts patch
-	npm publish
-	git push origin "$$(git rev-parse --abbrev-ref HEAD)"
-	git push origin --tags
+	# Bumping patch $(version) => $(patchVersion)
+	jq '.version = "$(patchVersion)"' deno.json | sponge deno.json
+	jq '.version = "$(patchVersion)"' package.json | sponge package.json
+	git add deno.json package.json
+
+
+	# npm publish
+	# git push origin "$$(git rev-parse --abbrev-ref HEAD)"
+	# git push origin --tags
