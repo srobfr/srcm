@@ -20,7 +20,7 @@ export const isGrammarDef = (value: any): value is GrammarDef => (
 
 type EmptyObject = Record<string | number | symbol, never>;
 
-type G = {
+export type G = {
   <TGrammar extends Grammar>(value: TGrammar, props?: Partial<Grammar>): TGrammar;
   (value: TemplateStringsArray, ...args: Array<GrammarDef>): SequenceGrammar; // Typically called like this : g`Foo${"bar"}plop`
   (value: OrGrammarDef, props?: Partial<Grammar>): ChoiceGrammar;

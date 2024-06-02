@@ -1,4 +1,4 @@
-SHELL:=/bin/bash -O globstar
+SHELL:=/bin/bash -O globstar -o pipefail
 
 help: ## Shows an help screen
 	@echo "SRCM"
@@ -26,17 +26,25 @@ origin ?= origin
 version = $(shell jq -r .version deno.json)
 patchVersion = $(shell deno run -A npm:semver -i $(level) $(version))
 
+
+# Pass publishOpts="--dry-run" for dry-run
+publishOpts ?=
+
 bump: fail-if-pending-changes test ## Tags & push a new version
 	# Bumping patch $(version) => $(patchVersion)
 	jq '.version = "$(patchVersion)"' deno.json | sponge deno.json
 	jq '.version = "$(patchVersion)"' package.json | sponge package.json
 	git add deno.json package.json
 	git commit -m "$(patchVersion)" && git tag "v$(patchVersion)"
-	git push $(origin) "v$(patchVersion)"
+	git push $(origin) "v$(patchVersion)" $(publishOpts)
 
 npm-publish: test npm-build
 npm-publish: ## Builds and publish on npm
-	cd $(npmDir) && npm publish
+	cd $(npmDir) && { npm diff | grep version -q; } && npm publish $(publishOpts)
 
-publish: bump npm-publish
+jsr-publish: test
+jsr-publish: ## Builds and publish on jsr.io
+	deno publish $(publishOpts)
+
+publish: bump npm-publish jsr-publish
 publish: ## Bump, build, commit, push and publish on npm
