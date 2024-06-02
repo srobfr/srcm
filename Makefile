@@ -46,5 +46,5 @@ jsr-publish: test
 jsr-publish: ## Builds and publish on jsr.io
 	deno publish $(publishOpts)
 
-publish: bump npm-publish jsr-publish
-publish: ## Bump, build, commit, push and publish on npm
+publish: npm-publish jsr-publish
+publish: ## build and publish on npm & jsr
