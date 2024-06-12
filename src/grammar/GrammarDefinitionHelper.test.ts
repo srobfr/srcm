@@ -30,21 +30,21 @@ Deno.test("GrammarDefinitionHelper / Recursion", () => {
 Deno.test({
   name: "GrammarDefinitionHelper / Or", fn() {
     const foobar = g.or(["foo", "bar"], { id: "foobar" });
-    assertEquals(stableInspect(foobar), `{"id":"foobar","type":"choice","value":[{"type":"string","value":"foo"},{"type":"string","value":"bar"}]}`);
+    assertEquals(stableInspect(foobar), `{"type":"choice","value":[{"type":"string","value":"foo"},{"type":"string","value":"bar"}],"id":"foobar"}`);
   }
 });
 
 Deno.test({
   name: "GrammarDefinitionHelper / Optional", fn() {
     const foo = g.optional("Foo", { id: "foo" });
-    assertEquals(stableInspect(foo), `{"id":"foo","type":"optional","value":{"type":"string","value":"Foo"}}`);
+    assertEquals(stableInspect(foo), `{"type":"optional","value":{"type":"string","value":"Foo"},"id":"foo"}`);
   }
 });
 
 Deno.test({
   name: "GrammarDefinitionHelper / Repetition", fn() {
     const foo = g.repeat("Foo", { id: "foo" });
-    assertEquals(stableInspect(foo), `{"id":"foo","type":"repeat","value":{"type":"string","value":"Foo"}}`);
+    assertEquals(stableInspect(foo), `{"type":"repeat","value":{"type":"string","value":"Foo"},"id":"foo"}`);
   }
 });
 
@@ -52,12 +52,13 @@ Deno.test({
   name: "GrammarDefinitionHelper / default", fn() {
     const bar = g(/^bar/i, { default: () => "BAR" });
     const opt = g.optional("Optional");
+    const opt2 = g.optional("Optional2", { default: () => "Optional2" });
     const or = g.or(["a", "b", "c"]);
     const repeat = g.repeat("Repeat");
-    const grammar = g`Foo${bar}${opt}${or}plop${repeat}`;
+    const grammar = g`Foo${bar}${opt}${opt2}${or}plop${repeat}`;
 
     const $ = parse(grammar.default!(), grammar);
 
-    assertEquals($.text(), `FooBARaplopRepeat`);
+    assertEquals($.text(), `FooBAROptional2aplopRepeat`);
   }
 });

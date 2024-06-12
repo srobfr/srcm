@@ -93,17 +93,20 @@ export default class GrammarDefinitionHelper {
   }
 
   or = (value: Array<GrammarDef>, props?: Partial<Grammar>): ChoiceGrammar => {
+    const { type: _type, value: _value, ...otherProps } = props ?? {};
     const grammars = value.map(v => this.#g(v));
-    return { ...props, type: "choice", value: grammars, default: () => grammars[0]?.default() };
+    return { type: "choice", value: grammars, default: () => grammars[0]?.default(), ...otherProps };
   }
 
   optional = (value: GrammarDef, props?: Partial<Grammar>): OptionalGrammar => {
-    return { ...props, type: "optional", value: this.#g(value), default: () => "" };
+    const { type: _type, value: _value, ...otherProps } = props ?? {};
+    return { type: "optional", value: this.#g(value), default: () => "", ...otherProps };
   }
 
   repeat = (value: GrammarDef, props?: Partial<Grammar>): RepeatGrammar => {
+    const { type: _type, value: _value, ...otherProps } = props ?? {};
     const grammar = this.#g(value);
-    return { ...props, type: "repeat", value: grammar, default: () => grammar.default() };
+    return { type: "repeat", value: grammar, default: () => grammar.default(), ...otherProps };
   }
 
   /** Helper to converts shorthand grammar formats into full grammar objects */
