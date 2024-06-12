@@ -1,10 +1,10 @@
-import { RuntimeAdapter } from "../runtimes/types.ts";
-import { OptionalGrammar, RegExpGrammar, StringGrammar } from "./GrammarTypes.ts";
-import { SequenceGrammar } from "./GrammarTypes.ts";
-import { RepeatGrammar } from "./GrammarTypes.ts";
-import { ChoiceGrammar } from "./GrammarTypes.ts";
+import type { RuntimeAdapter } from "../runtimes/types.ts";
+import type { OptionalGrammar, RegExpGrammar, StringGrammar } from "./GrammarTypes.ts";
+import type { SequenceGrammar } from "./GrammarTypes.ts";
+import type { RepeatGrammar } from "./GrammarTypes.ts";
+import type { ChoiceGrammar } from "./GrammarTypes.ts";
 import { isGrammar } from "./GrammarTypes.ts";
-import { Grammar } from "./GrammarTypes.ts";
+import type { Grammar } from "./GrammarTypes.ts";
 
 export type OrGrammarDef = { or: Array<GrammarDef> };
 export const isOrGrammarDef = (value: any): value is OrGrammarDef => value?.or && Array.isArray(value.or);
@@ -69,11 +69,17 @@ export default class GrammarDefinitionHelper {
         ));
       }
 
-      else if (typeof value === "string") Object.assign(r, { type: "string", value });
+      else if (typeof value === "string") Object.assign(r, { type: "string", value, default: () => value });
       else if (value instanceof RegExp) Object.assign(r, { type: "regexp", value });
       else if (typeof value === "function") Object.assign(r, { type: "function", value });
       else if (isOrGrammarDef(value)) Object.assign(r, { type: "choice", value: value.or.map(v => this.#g(v)) });
-      else if (Array.isArray(value)) Object.assign(r, { type: "sequence", value: value.map(v => this.#g(v)) });
+      else if (Array.isArray(value)) Object.assign(
+        r,
+        {
+          type: "sequence", value: value.map(v => this.#g(v)),
+          default: () => (r.value as SequenceGrammar["value"]).map(v => v.default?.() ?? "").join("")
+        }
+      );
 
       if (!isGrammar(r)) {
         throw new Error(`Unable to build a grammar: ${this.runtimeAdapter.inspect({ value, templateArgs: args })}`);
@@ -87,15 +93,17 @@ export default class GrammarDefinitionHelper {
   }
 
   or = (value: Array<GrammarDef>, props?: Partial<Grammar>): ChoiceGrammar => {
-    return { ...props, type: "choice", value: value.map(v => this.#g(v)) };
+    const grammars = value.map(v => this.#g(v));
+    return { ...props, type: "choice", value: grammars, default: () => grammars[0]?.default() };
   }
 
   optional = (value: GrammarDef, props?: Partial<Grammar>): OptionalGrammar => {
-    return { ...props, type: "optional", value: this.#g(value) };
+    return { ...props, type: "optional", value: this.#g(value), default: () => "" };
   }
 
   repeat = (value: GrammarDef, props?: Partial<Grammar>): RepeatGrammar => {
-    return { ...props, type: "repeat", value: this.#g(value) };
+    const grammar = this.#g(value);
+    return { ...props, type: "repeat", value: grammar, default: () => grammar.default() };
   }
 
   /** Helper to converts shorthand grammar formats into full grammar objects */

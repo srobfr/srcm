@@ -1,4 +1,4 @@
-import INode from "../dom/Node.ts";
+import type INode from "../dom/Node.ts";
 import stableInspect from "../utils/inspect.ts";
 
 export type GrammarBase = {
@@ -11,7 +11,7 @@ export type GrammarBase = {
   /** Custom node class. Must extend Node. */
   nodeClass?: new (...args: Array<any>) => INode;
   /** Default text for this grammar */
-  default?: string;
+  default?: () => string;
 };
 
 // Terminal grammar types
