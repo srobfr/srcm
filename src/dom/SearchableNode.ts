@@ -7,27 +7,35 @@ import { INode } from "./Node.ts";
 /** Provides searching features to the node */
 export default class SearchableNode extends BaseNode {
 
-  findFirstByGrammar(grammar: Grammar): INode | null {
+  findFirst(func: ($: INode) => boolean): INode | null {
     const $$: Array<INode> = [this];
     while ($$.length > 0) {
       const $ = $$.shift();
       if (!$) break;
-      if ($.grammar === grammar) return $;
+      if (func($)) return $;
       else $$.push(...$.children);
     }
     return null;
   }
 
-  findByGrammar(grammar: Grammar): Array<INode> {
+  findFirstByGrammar(grammar: Grammar): INode | null {
+    return this.findFirst($ => $.grammar === grammar);
+  }
+
+  find(func: ($: INode) => boolean): Array<INode> {
     const $$: Array<INode> = [this];
     const $results = [];
     while ($$.length > 0) {
       const $ = $$.shift();
       if (!$) break;
-      if ($.grammar === grammar) $results.push($);
+      if (func($)) $results.push($);
       else $$.push(...$.children);
     }
     return $results;
+  }
+
+  findByGrammar(grammar: Grammar): Array<INode> {
+    return this.find($ => $.grammar === grammar);
   }
 
   findFirstByPath(path: Array<Grammar>): INode | null {
