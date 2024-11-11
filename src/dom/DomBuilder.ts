@@ -1,6 +1,7 @@
 import { Context } from "../parser/types.ts";
 import Parser from "../parser/Parser.ts";
 import Node from "./Node.ts";
+import BaseNode from "./BaseNode.ts";
 
 export default class DomBuilder {
 
@@ -10,7 +11,7 @@ export default class DomBuilder {
       const textContent = context.children ? null : code.substring(context.offset, context.offset + context.matchedCharsCount);
 
       const nodeClass = context.grammar?.nodeClass ?? Node;
-      if (nodeClass !== Node && !(nodeClass.prototype instanceof Node)) throw new Error(`nodeClass ${nodeClass} should extend Node`);
+      if (nodeClass !== Node && !(nodeClass.prototype instanceof BaseNode)) throw new Error(`nodeClass ${nodeClass} should extend BaseNode`);
 
       const $ = new nodeClass(context.grammar!, null, null, null, [], textContent, parse);
 

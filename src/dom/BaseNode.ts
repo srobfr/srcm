@@ -14,7 +14,7 @@ export default class BaseNode {
     public next: INode | null,
     public children: Array<INode>,
     public textContent: string | null,
-    private readonly parse: Parser["parse"],
+    public readonly parse: Parser["parse"],
   ) {
   }
 
