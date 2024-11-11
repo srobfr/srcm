@@ -14,7 +14,7 @@ export class RepeatNode extends SearchableNode {
   }
 
   /** The comparison function, allowing to order items */
-  compare($a: INode, $b: INode) {
+  compare($a: INode, $b: INode): number {
     return this.orderFn($a).localeCompare(this.orderFn($b));
   }
 
