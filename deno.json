@@ -1,6 +1,6 @@
 {
   "name": "@srob/srcm",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "exports": "./src/deno-mod.ts",
   "description": "Generic code modification tool",
   "author": "Simon Robert",
