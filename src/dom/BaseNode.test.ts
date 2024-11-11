@@ -79,7 +79,7 @@ Deno.test({
   name: "BaseNode / Custom Node class", fn() {
     const grammar = g(/^.+/, {
       id: "foo",
-      nodeClass: class FooNode extends Node {
+      nodeClass: class extends Node {
         hello() {
           this.text("Hello world!");
         }

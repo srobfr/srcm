@@ -1,4 +1,4 @@
-import { INode } from "../dom/Node.ts";
+import { Node } from "../dom/Node.ts";
 import { stableInspect } from "../utils/inspect.ts";
 
 export type GrammarBase = {
@@ -9,7 +9,7 @@ export type GrammarBase = {
   /** Allows to manage precedence between two occurrences of this grammar. Default is false (reduce first, then shift) */
   rightToLeft?: boolean;
   /** Custom node class. Must extend Node. */
-  nodeClass?: new (...args: Array<any>) => INode;
+  nodeClass?: new (...args: Array<any>) => Node;
   /** Default text for this grammar */
   default?: () => string;
 };
@@ -46,5 +46,5 @@ export const isGrammar = (value: any): value is Grammar => isTerminalGrammar(val
 export function inspectGrammar(grammar: Grammar | null): string {
   return grammar === null ? "<EOF>"
     : grammar.id ? `<${grammar.id}>`
-    : stableInspect(grammar.value);
+      : stableInspect(grammar.value);
 }
