@@ -1,7 +1,7 @@
 /**
  * A small memoize helper
  */
-export default function memoize<T extends (...args: any) => any>(func: T): T {
+export function memoize<T extends (...args: any) => any>(func: T): T {
   const valueKey = Symbol();
   const cache = new Map();
   return ((...args) => {

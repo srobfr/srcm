@@ -2,7 +2,7 @@ import { isTerminalGrammar } from "../grammar/GrammarTypes.ts";
 import { Context } from "./types.ts";
 
 /** Utility for context inspection */
-export default function inspectContext(context: Context, code: string) {
+export function inspectContext(context: Context, code: string) {
   function getText(context: Context): string {
     const content = isTerminalGrammar(context.grammar)
       ? code.substring(context.offset, context.offset + context.matchedCharsCount)

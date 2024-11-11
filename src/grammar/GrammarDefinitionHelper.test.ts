@@ -1,7 +1,7 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
-import DenoRuntimeAdapter from "../runtimes/DenoRuntimeAdapter.ts";
-import GrammarDefinitionHelper from "./GrammarDefinitionHelper.ts";
-import stableInspect from "../utils/inspect.ts";
+import { DenoRuntimeAdapter } from "../runtimes/DenoRuntimeAdapter.ts";
+import { GrammarDefinitionHelper } from "./GrammarDefinitionHelper.ts";
+import { stableInspect } from "../utils/inspect.ts";
 import { parse } from "../deno-mod.ts";
 
 const runtime = new DenoRuntimeAdapter();

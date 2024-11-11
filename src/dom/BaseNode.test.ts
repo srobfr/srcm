@@ -2,7 +2,7 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
 import { g, parse } from "../deno-mod.ts";
 import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
-import Node from "./Node.ts";
+import { Node } from "./Node.ts";
 
 Deno.test({
   name: "BaseNode", async fn(t) {

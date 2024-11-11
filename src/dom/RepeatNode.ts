@@ -1,10 +1,10 @@
 // deno-lint-ignore-file
-import { Grammar, StringGrammar } from "../grammar/GrammarTypes.ts";
-import Node, { INode } from "./Node.ts";
-import SearchableNode from "./SearchableNode.ts";
+import { Grammar } from "../grammar/GrammarTypes.ts";
+import { INode } from "./Node.ts";
+import { SearchableNode } from "./SearchableNode.ts";
 
 /** Provides remove & insertion features to a list node */
-export default class RepeatNode extends SearchableNode {
+export class RepeatNode extends SearchableNode {
 
   separator?: Grammar = undefined;
 

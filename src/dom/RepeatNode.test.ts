@@ -1,7 +1,7 @@
 import { assert } from "https://deno.land/std@0.223.0/assert/assert.ts";
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
 import { g, parse } from "../deno-mod.ts";
-import RepeatNode from "./RepeatNode.ts";
+import { RepeatNode } from "./RepeatNode.ts";
 
 
 Deno.test({

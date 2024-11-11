@@ -1,9 +1,9 @@
 import { Context } from "../parser/types.ts";
-import Parser from "../parser/Parser.ts";
-import Node from "./Node.ts";
-import BaseNode from "./BaseNode.ts";
+import { Parser } from "../parser/Parser.ts";
+import { Node } from "./Node.ts";
+import { BaseNode } from "./BaseNode.ts";
 
-export default class DomBuilder {
+export class DomBuilder {
 
   /** Builds a pseudo-DOM tree from the given parsing context */
   public build(context: Context, parse: Parser["parse"], code: string): Node {

@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
-import DomBuilder from "../dom/DomBuilder.ts";
-import GrammarDefinitionHelper from "../grammar/GrammarDefinitionHelper.ts";
-import DenoRuntimeAdapter from "../runtimes/DenoRuntimeAdapter.ts";
-import GrammarAnalyzer from "./GrammarAnalyzer.ts";
-import Parser from "./Parser.ts";
+import { DomBuilder } from "../dom/DomBuilder.ts";
+import { GrammarDefinitionHelper } from "../grammar/GrammarDefinitionHelper.ts";
+import { DenoRuntimeAdapter } from "../runtimes/DenoRuntimeAdapter.ts";
+import { GrammarAnalyzer } from "./GrammarAnalyzer.ts";
+import { Parser } from "./Parser.ts";
 import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 
 const runtimeAdapter = new DenoRuntimeAdapter();

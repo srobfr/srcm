@@ -34,7 +34,7 @@ export type G = {
   repeat: (value: GrammarDef, props?: Partial<Grammar>) => RepeatGrammar,
 };
 
-export default class GrammarDefinitionHelper {
+export class GrammarDefinitionHelper {
   /** Allows to reuse previous results + handles infinite recursions */
   private gCache: Map<any, Grammar | EmptyObject> | null = null;
 

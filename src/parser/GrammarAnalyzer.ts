@@ -1,8 +1,8 @@
 import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isOptionalGrammar, isRegExpGrammar, isRepeatGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar, SequenceGrammar, TerminalGrammar, TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
-import stableInspect from "../utils/inspect.ts";
-import mapSetAddBy from "../utils/mapSetAddBy.ts";
-import memoize from "../utils/memoize.ts";
+import { stableInspect } from "../utils/inspect.ts";
+import { mapSetAddBy } from "../utils/mapSetAddBy.ts";
+import { memoize } from "../utils/memoize.ts";
 import { Action, ActionType } from "./types.ts";
 
 type AnalysisContext = {
@@ -22,7 +22,7 @@ type WalkParams = {
   action: (type: ActionType, grammar: Grammar | null, precedence?: number, rightToLeft?: boolean) => Action,
 };
 
-export default class GrammarAnalyzer {
+export class GrammarAnalyzer {
   constructor(private readonly runtime: RuntimeAdapter) { }
 
   /** Analyzes the root grammar to extract the required data for bottom-up parsing */

@@ -2,7 +2,7 @@
 /**
  * Provides a stable runtime-independant way to serialize a JS object, including Map & Set
  */
-export default function stableInspect(value: any, space: number = 0): any {
+export function stableInspect(value: any, space: number = 0): any {
   let i = 0;
   const refsMap = new WeakMap();
 

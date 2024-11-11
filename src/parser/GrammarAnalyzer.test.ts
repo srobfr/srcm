@@ -1,9 +1,9 @@
 
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
-import GrammarDefinitionHelper from "../grammar/GrammarDefinitionHelper.ts";
-import DenoRuntimeAdapter from "../runtimes/DenoRuntimeAdapter.ts";
-import GrammarAnalyzer from "./GrammarAnalyzer.ts";
-import stableInspect from "../utils/inspect.ts";
+import { GrammarDefinitionHelper } from "../grammar/GrammarDefinitionHelper.ts";
+import { DenoRuntimeAdapter } from "../runtimes/DenoRuntimeAdapter.ts";
+import { GrammarAnalyzer } from "./GrammarAnalyzer.ts";
+import { stableInspect } from "../utils/inspect.ts";
 import type { SequenceGrammar } from "../grammar/GrammarTypes.ts";
 import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 

@@ -1,12 +1,12 @@
 import { Grammar } from "../grammar/GrammarTypes.ts";
-import Parser from "../parser/Parser.ts";
-import Node from "./Node.ts";
+import { Parser } from "../parser/Parser.ts";
+import { Node } from "./Node.ts";
 import { INode } from "./Node.ts";
 
 const xmlEscapeMap = { '<': '&lt;', '>': '&gt;', '&': '&amp;' };
 
 /** Provides base features for pseudo DOM node */
-export default class BaseNode {
+export class BaseNode {
   constructor(
     public readonly grammar: Grammar,
     public parent: INode | null,

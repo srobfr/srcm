@@ -1,12 +1,12 @@
-import DomBuilder from "./dom/DomBuilder.ts";
+import { DomBuilder } from "./dom/DomBuilder.ts";
 import type { INode } from "./dom/Node.ts";
-import GrammarDefinitionHelper, { G } from "./grammar/GrammarDefinitionHelper.ts";
+import { GrammarDefinitionHelper, G } from "./grammar/GrammarDefinitionHelper.ts";
 import type { Grammar } from "./grammar/GrammarTypes.ts";
-import GrammarAnalyzer from "./parser/GrammarAnalyzer.ts";
-import Parser from "./parser/Parser.ts";
+import { GrammarAnalyzer } from "./parser/GrammarAnalyzer.ts";
+import { Parser } from "./parser/Parser.ts";
 import type { RuntimeAdapter } from "./runtimes/types.ts";
 
-export default function ioc(runtimeAdapter: RuntimeAdapter): {
+export function ioc(runtimeAdapter: RuntimeAdapter): {
   g: G;
   parse: (code: string, grammar: Grammar) => INode;
 } {

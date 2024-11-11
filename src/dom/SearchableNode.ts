@@ -1,11 +1,11 @@
 // deno-lint-ignore-file
 import { Grammar } from "../grammar/GrammarTypes.ts";
-import stableInspect from "../utils/inspect.ts";
-import BaseNode from "./BaseNode.ts";
+import { stableInspect } from "../utils/inspect.ts";
+import { BaseNode } from "./BaseNode.ts";
 import { INode } from "./Node.ts";
 
 /** Provides searching features to the node */
-export default class SearchableNode extends BaseNode {
+export class SearchableNode extends BaseNode {
 
   findFirst(func: ($: INode) => boolean): INode | null {
     const $$: Array<INode> = [this];

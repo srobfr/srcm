@@ -1,7 +1,7 @@
 /**
  * A small cache helper
  */
-export default function buildCache<T>(): (keys: Array<any>, getValue: () => T) => any {
+export function buildCache<T>(): (keys: Array<any>, getValue: () => T) => any {
   const valueKey = Symbol();
   const cache = new Map();
   return ((keys: Array<any>, getValue: () => T) => {

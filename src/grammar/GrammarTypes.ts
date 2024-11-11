@@ -1,5 +1,5 @@
-import type INode from "../dom/Node.ts";
-import stableInspect from "../utils/inspect.ts";
+import { INode } from "../dom/Node.ts";
+import { stableInspect } from "../utils/inspect.ts";
 
 export type GrammarBase = {
   /** Simplifies the grammar node identification, for example for debugging */
