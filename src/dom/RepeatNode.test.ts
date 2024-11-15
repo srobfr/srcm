@@ -2,6 +2,7 @@ import { assert } from "https://deno.land/std@0.223.0/assert/assert.ts";
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
 import { g, parse } from "../deno-mod.ts";
 import { RepeatNode } from "./RepeatNode.ts";
+import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 
 
 Deno.test({
@@ -55,5 +56,27 @@ Deno.test({
 
     const $insertedC = $.findFirst($ => $.text() === "c");
     assert($insertedC !== $c); // ⚠️ Please note
+  }
+});
+
+Deno.test({
+  name: "RepeatNode / separators without default", fn() {
+    const item = g.or(["a", "b", "c"]);
+    const separator = g(/^, */);
+    const list = g.optional([
+      item,
+      g.optional(g.repeat([separator, item]))
+    ], {
+      nodeClass: class extends RepeatNode {
+        separator = separator;
+      }
+    });
+
+    const $ = parse(`a,c`, list);
+    const $c = parse(`b`, item);
+
+    assertThrows(() => {
+      $.insert($c);
+    }, `Separator grammar /^, */ does not match its default ""`);
   }
 });

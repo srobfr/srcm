@@ -1,11 +1,12 @@
-import { DomBuilder } from "../dom/DomBuilder.ts";
-import { INode } from "../dom/Node.ts";
-import { Grammar, TerminalGrammar, inspectGrammar, isChoiceGrammar, isOptionalGrammar, isRegExpGrammar, isRepeatGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
-import { RuntimeAdapter } from "../runtimes/types.ts";
+import type { DomBuilder } from "../dom/DomBuilder.ts";
+import type { INode } from "../dom/Node.ts";
+import { type Grammar, type TerminalGrammar, inspectGrammar, isChoiceGrammar, isOptionalGrammar, isRegExpGrammar, isRepeatGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar } from "../grammar/GrammarTypes.ts";
+import type { RuntimeAdapter } from "../runtimes/types.ts";
 import { buildCache } from "../utils/cache.ts";
 import { memoize } from "../utils/memoize.ts";
-import { GrammarAnalyzer } from "./GrammarAnalyzer.ts";
-import { Action, ActionType, Context, ParseError } from "./types.ts";
+import type { GrammarAnalyzer } from "./GrammarAnalyzer.ts";
+import { inspectContext } from "./inspectContext.ts";
+import { type Action, ActionType, type Context, type ParseError } from "./types.ts";
 
 class SyntaxError extends Error { name = "SyntaxError"; }
 

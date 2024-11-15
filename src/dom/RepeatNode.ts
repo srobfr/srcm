@@ -20,7 +20,18 @@ export class RepeatNode extends Node {
   insert($item: INode) {
     const buildSeparatorNode = ($prev: INode, $next: INode) => {
       if (!this.separator) return null;
-      return this.parse(this.separator.default?.() ?? "", this.separator);
+      const separatorDefault = this.separator.default?.() ?? "";
+      try {
+        return this.parse(separatorDefault, this.separator);
+      } catch (err) {
+        if (err.name === "SyntaxError") {
+          throw new Error(`Separator grammar ${this.separator.value} does not match its default "${separatorDefault}"`, {
+            cause: err,
+          });
+        }
+
+        throw err;
+      }
     };
 
     // First, find the others items with the same grammar

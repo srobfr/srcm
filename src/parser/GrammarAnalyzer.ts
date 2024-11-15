@@ -172,13 +172,20 @@ export class GrammarAnalyzer {
       }
 
       else if (isRepeatGrammar(parent)) {
-        mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]); // Stop here
-        mapSetAddBy( // Or shift again
-          nextPossibleActionsByLastGrammar, grammar,
-          Array.from(firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<Grammar>()).map(
-            subGrammar => action(ActionType.SHIFT, subGrammar, parentPrecedence, parentRightToLeft)
-          )
-        );
+        if (parent.sep === undefined) {
+          // No separator
+          mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]); // Stop here
+          mapSetAddBy( // Or shift again
+            nextPossibleActionsByLastGrammar, grammar,
+            Array.from(firstPossibleTerminalsByGrammar.get(grammar) ?? new Set<Grammar>()).map(
+              subGrammar => action(ActionType.SHIFT, subGrammar, parentPrecedence, parentRightToLeft)
+            )
+          );
+        }
+        else {
+          // With a separator
+          throw new Error(`separator handling is not implemented yet`);// TODO Handle the parent.sep property
+        }
       }
 
       else if (isSequenceGrammar(parent)) {
