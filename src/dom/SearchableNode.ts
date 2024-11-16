@@ -7,8 +7,8 @@ import { INode } from "./Node.ts";
 /** Provides searching features to the node */
 export class SearchableNode extends BaseNode {
 
-  findFirst(func: ($: SearchableNode) => boolean): SearchableNode | null {
-    const $$: Array<SearchableNode> = [this];
+  findFirst(func: ($: INode) => boolean): INode | null {
+    const $$: Array<INode> = [this as INode];
     while ($$.length > 0) {
       const $ = $$.shift();
       if (!$) break;
@@ -23,7 +23,7 @@ export class SearchableNode extends BaseNode {
   }
 
   find(func: ($: INode) => boolean): Array<INode> {
-    const $$: Array<INode> = [this];
+    const $$: Array<INode> = [this as INode];
     const $results = [];
     while ($$.length > 0) {
       const $ = $$.shift();
@@ -39,7 +39,7 @@ export class SearchableNode extends BaseNode {
   }
 
   findFirstByPath(path: Array<Grammar>): INode | null {
-    let $$: INode | null = this;
+    let $$: INode | null = this as INode;
     for (const g of path) {
       $$ = $$.findFirstByGrammar(g);
       if (!$$) return null;
@@ -48,7 +48,7 @@ export class SearchableNode extends BaseNode {
   }
 
   findByPath(path: Array<Grammar>): Array<INode> {
-    let $$: Array<INode> = [this];
+    let $$: Array<INode> = [this as INode];
     for (const g of path) {
       const next$$ = [];
       for (const $ of $$) next$$.push(...$.findByGrammar(g));

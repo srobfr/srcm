@@ -1,7 +1,7 @@
-import { Grammar } from "../grammar/GrammarTypes.ts";
-import { Parser } from "../parser/Parser.ts";
-import { Node } from "./Node.ts";
-import { INode } from "./Node.ts";
+import type { Grammar } from "../grammar/GrammarTypes.ts";
+import type { Parser } from "../parser/Parser.ts";
+import type { Node } from "./Node.ts";
+import type { INode } from "./Node.ts";
 
 const xmlEscapeMap = { '<': '&lt;', '>': '&gt;', '&': '&amp;' };
 

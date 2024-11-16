@@ -2,13 +2,12 @@ import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals
 import { assertStrictEquals } from "https://deno.land/std@0.223.0/assert/assert_strict_equals.ts";
 import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 import { g, parse } from "../deno-mod.ts";
-import { RepeatNode } from "./RepeatNode.ts";
 
 
 Deno.test({
   name: "RepeatNode / insert", fn() {
     const item = g.or(["a", "b", "c", "d", "e"]);
-    const list = g.repeat(item, { nodeClass: RepeatNode });
+    const list = g.repeat(item);
 
     const $ = parse(`bd`, list);
     $.insert(parse(`c`, item));
@@ -22,7 +21,7 @@ Deno.test({
 Deno.test({
   name: "RepeatNode / insert / list is somewhere in a child", fn() {
     const item = g.or(["a", "b", "c", "d", "e"]);
-    const list = g.optional([g.repeat(item)], { nodeClass: RepeatNode });
+    const list = g.optional([g.repeat(item)]);
 
     const $ = parse(`bd`, list);
     $.insert(parse(`c`, item));

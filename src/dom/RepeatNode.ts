@@ -1,6 +1,5 @@
 // deno-lint-ignore-file
-import { isRepeatGrammar } from "../deno-mod.ts";
-import { Grammar, RepeatGrammar } from "../grammar/GrammarTypes.ts";
+import { RepeatGrammar } from "../grammar/GrammarTypes.ts";
 import { INode } from "./Node.ts";
 import { SearchableNode } from "./SearchableNode.ts";
 
@@ -23,7 +22,11 @@ export class RepeatNode extends SearchableNode {
    */
   buildSeparatorNode($prev: INode, $next: INode): INode | null {
     const sep = (this.grammar as RepeatGrammar).sep ?? (($prev ?? $next).parent?.grammar as RepeatGrammar).sep;
-    if (sep === undefined) throw new Error(`No separator grammar found`);
+    if (sep === undefined) {
+      // No separator grammar found
+      return null;
+    }
+
     const separatorDefault = sep?.default?.() ?? "";
     try {
       return this.parse(separatorDefault, sep);

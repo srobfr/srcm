@@ -81,7 +81,7 @@ Deno.test({
   name: "GrammarAnalyzer / Repetition with separator", fn() {
     const grammar = g.repeat("foo", {sep: g(",")});
     const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
-    assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[{"type":"shift","grammar":"#ref3"}],"<{\\"type\\":\\"repeat\\",\\"value\\":{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"},\\"sep\\":{\\"type\\":\\"string\\",\\"value\\":\\",\\"}}>":[{"type":"accept","grammar":null}],"<\\"#ref1\\">":[{"type":"reduce","grammar":"#ref0"},{"type":"shift","grammar":"#ref8"}],"<\\"#ref2\\">":["#ref14"]}`);
+    assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[{"type":"shift","grammar":"#ref3"}],"<{\\"type\\":\\"repeat\\",\\"value\\":{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"},\\"sep\\":{\\"type\\":\\"string\\",\\"value\\":\\",\\"}}>":[{"type":"accept","grammar":null}],"<\\"#ref1\\">":[{"type":"reduce","grammar":"#ref0"},{"type":"shift","grammar":"#ref4"}],"<\\"#ref2\\">":[{"type":"shift","grammar":"#ref8"}]}`);
   }
 });
 
