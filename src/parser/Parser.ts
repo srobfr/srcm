@@ -153,6 +153,18 @@ export class Parser {
                   firstContext = contextToCheck;
                   children.unshift(contextToCheck);
                   contextToCheck = contextToCheck.previous ?? null;
+
+                  if (grammar.sep !== undefined) {
+                    // Try to match a separator
+                    const sepContext: Context | null = contextToCheck;
+                    const previousItemContext: Context | null = sepContext?.previous ?? null;
+                    if (sepContext?.grammar === grammar.sep && previousItemContext?.grammar === grammar.value) {
+                      // It matches, we can proceed with the separator child
+                      matchedCharsCount += sepContext.matchedCharsCount;
+                      children.unshift(sepContext);
+                      contextToCheck = previousItemContext;
+                    }
+                  }
                 }
 
                 if (firstContext) {

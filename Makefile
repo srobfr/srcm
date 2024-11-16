@@ -9,6 +9,9 @@ test: ## Runs tests
 	# Translating \ to \\ to easy copy/paste of failed tests using stableInspect() comparisons
 	deno test src/ | sed 's:\\:\\\\:g'
 
+debug-test: ## Runs tests in debug mode
+	deno test src/ --inspect-wait | sed 's:\\:\\\\:g'
+
 fail-if-pending-changes:
 	test "" = "$$(git status -suno)" || { git status -suno; echo "First commit your changes!"; false; }
 

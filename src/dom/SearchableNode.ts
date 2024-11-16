@@ -7,8 +7,8 @@ import { INode } from "./Node.ts";
 /** Provides searching features to the node */
 export class SearchableNode extends BaseNode {
 
-  findFirst(func: ($: INode) => boolean): INode | null {
-    const $$: Array<INode> = [this];
+  findFirst(func: ($: SearchableNode) => boolean): SearchableNode | null {
+    const $$: Array<SearchableNode> = [this];
     while ($$.length > 0) {
       const $ = $$.shift();
       if (!$) break;

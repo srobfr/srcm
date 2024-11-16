@@ -1,63 +1,67 @@
 // deno-lint-ignore-file
-import { Grammar } from "../grammar/GrammarTypes.ts";
-import { INode, Node } from "./Node.ts";
+import { isRepeatGrammar } from "../deno-mod.ts";
+import { Grammar, RepeatGrammar } from "../grammar/GrammarTypes.ts";
+import { INode } from "./Node.ts";
+import { SearchableNode } from "./SearchableNode.ts";
 
-/** Provides remove & insertion features to a list node */
-export class RepeatNode extends Node {
-
-  separator?: Grammar = undefined;
-
+/** Provides remove & insertion features to repeat nodes */
+export class RepeatNode extends SearchableNode {
   /** Converts a node to an arbitrary string, used for ordering items. */
-  orderFn($: INode): string {
+  order($: INode): string {
+    if (this.grammar.order) return this.grammar.order($);
     return $.text();
   }
 
   /** The comparison function, allowing to order items */
   compare($a: INode, $b: INode): number {
-    return this.orderFn($a).localeCompare(this.orderFn($b));
+    return this.order($a).localeCompare(this.order($b));
+  }
+
+  /**
+   * Builds a separator node, used when using insert() when the inserted node
+   * is going to be inserted between two existing nodes in a list.
+   */
+  buildSeparatorNode($prev: INode, $next: INode): INode | null {
+    const sep = (this.grammar as RepeatGrammar).sep ?? (($prev ?? $next).parent?.grammar as RepeatGrammar).sep;
+    if (sep === undefined) throw new Error(`No separator grammar found`);
+    const separatorDefault = sep?.default?.() ?? "";
+    try {
+      return this.parse(separatorDefault, sep);
+    } catch (err) {
+      if (err.name === "SyntaxError") {
+        throw new Error(`Separator grammar ${sep} does not match its default "${separatorDefault}"`, {
+          cause: err,
+        });
+      }
+
+      throw err;
+    }
   }
 
   insert($item: INode) {
-    const buildSeparatorNode = ($prev: INode, $next: INode) => {
-      if (!this.separator) return null;
-      const separatorDefault = this.separator.default?.() ?? "";
-      try {
-        return this.parse(separatorDefault, this.separator);
-      } catch (err) {
-        if (err.name === "SyntaxError") {
-          throw new Error(`Separator grammar ${this.separator.value} does not match its default "${separatorDefault}"`, {
-            cause: err,
-          });
-        }
-
-        throw err;
-      }
-    };
-
-    // First, find the others items with the same grammar
+    // Find the others items with the same grammar
     const $items = this.findByGrammar($item.grammar);
     if ($items.length === 0) {
-      // The list is empty : just append the item
-      this.append($item);
-    } else {
+      // The list is empty
+      this.text($item.text());
+      this.findFirst($ => $.grammar === $item.grammar && $.text() === $item.text())?.replaceWith($item);
+    }
+
+    else {
       // Find the item before which to insert this one
       const $nextItem = $items.find($ => this.compare($item, $) < 0);
       if ($nextItem) {
         $nextItem.before($item);
-        const $separator = buildSeparatorNode($item, $nextItem);
+        const $separator = this.buildSeparatorNode($item, $nextItem);
         if ($separator) $nextItem.before($separator);
       }
       else {
         // Last of the list
-        const $separator = buildSeparatorNode($items[$items.length - 1], $item);
-        if ($separator) this.append($separator);
-        this.append($item);
+        const $lastItem = $items[$items.length - 1];
+        const $separator = this.buildSeparatorNode($lastItem, $item);
+        $lastItem.after($item);
+        if ($separator) $lastItem.after($separator);
       }
     }
-
-    // This insertion logics does not care about the various way to make a repeating pattern while manipulating the DOM.
-    // At this point the dom is probably broken so we'll just re-parse it.
-    // Please note that it'll break the elements references under this node though, so you'll probably need to find() them again.
-    this.text(this.text());
   }
 }

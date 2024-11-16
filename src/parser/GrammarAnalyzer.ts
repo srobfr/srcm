@@ -79,6 +79,11 @@ export class GrammarAnalyzer {
             toWalk.push({ ...nextParams, grammar: subGrammar });
           }
         }
+        else if (isRepeatGrammar(grammar) && grammar.sep !== undefined) {
+          // Repetition grammar with a separator
+          toWalk.push({ ...nextParams, grammar: grammar.value });
+          toWalk.push({ ...nextParams, grammar: grammar.sep });
+        }
         else { // Optional, repetitions, etc.
           toWalk.push({ ...nextParams, grammar: grammar.value });
         }
@@ -127,6 +132,11 @@ export class GrammarAnalyzer {
             const hasOptionalFirstTerminal = firstPossibleTerminals.find(terminal => isOptionalGrammar(terminal));
             return !hasOptionalFirstTerminal; // Not optional
           })) {
+          continue;
+        }
+
+        // If we are processing a separator in a repeat grammar => skip
+        if (isRepeatGrammar(parent) && parent.sep === grammar) {
           continue;
         }
 
@@ -184,7 +194,23 @@ export class GrammarAnalyzer {
         }
         else {
           // With a separator
-          throw new Error(`separator handling is not implemented yet`);// TODO Handle the parent.sep property
+          if (grammar === parent.sep) {
+            mapSetAddBy( // Shift the next item
+              nextPossibleActionsByLastGrammar, grammar,
+              Array.from(firstPossibleTerminalsByGrammar.get(parent.value) ?? new Set<Grammar>()).map(
+                subGrammar => action(ActionType.SHIFT, subGrammar, parentPrecedence, parentRightToLeft)
+              )
+            );
+          }
+          else {
+            mapSetAddBy(nextPossibleActionsByLastGrammar, grammar, [action(ActionType.REDUCE, parent)]); // Stop here
+            mapSetAddBy( // Shift a separator
+              nextPossibleActionsByLastGrammar, grammar,
+              Array.from(firstPossibleTerminalsByGrammar.get(parent.sep) ?? new Set<Grammar>()).map(
+                subGrammar => action(ActionType.SHIFT, subGrammar, parentPrecedence, parentRightToLeft)
+              )
+            );
+          }
         }
       }
 

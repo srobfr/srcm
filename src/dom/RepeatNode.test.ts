@@ -1,8 +1,8 @@
-import { assert } from "https://deno.land/std@0.223.0/assert/assert.ts";
 import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
+import { assertStrictEquals } from "https://deno.land/std@0.223.0/assert/assert_strict_equals.ts";
+import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 import { g, parse } from "../deno-mod.ts";
 import { RepeatNode } from "./RepeatNode.ts";
-import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 
 
 Deno.test({
@@ -36,26 +36,19 @@ Deno.test({
 Deno.test({
   name: "RepeatNode / insert / list with separators", fn() {
     const item = g.or(["a", "b", "c", "d", "e"]);
-    const separator = g(/^, */, {default: () => ","});
-    const list = g.optional([
-      item,
-      g.optional(g.repeat([separator, item]))
-    ], {
-      nodeClass: class extends RepeatNode {
-        separator = separator;
-      }
-    });
+    const separator = g(/^, */, { default: () => `,` });
+    const list = g.optional(g.repeat(item, { sep: separator }));
 
     const $ = parse(`b,d`, list);
     const $c = parse(`c`, item);
 
-    $.insert($c, ",");
-    $.insert(parse(`a`, item), () => ",");
-    $.insert(parse(`e`, item), ",");
+    $.insert($c);
+    $.insert(parse(`a`, item));
+    $.insert(parse(`e`, item));
     assertEquals($.xml(), `a,b,c,d,e`);
 
     const $insertedC = $.findFirst($ => $.text() === "c");
-    assert($insertedC !== $c); // ⚠️ Please note
+    assertStrictEquals($insertedC, $c);
   }
 });
 
@@ -63,14 +56,7 @@ Deno.test({
   name: "RepeatNode / separators without default", fn() {
     const item = g.or(["a", "b", "c"]);
     const separator = g(/^, */);
-    const list = g.optional([
-      item,
-      g.optional(g.repeat([separator, item]))
-    ], {
-      nodeClass: class extends RepeatNode {
-        separator = separator;
-      }
-    });
+    const list = g.optional(g.repeat(item, { sep: separator }));
 
     const $ = parse(`a,c`, list);
     const $c = parse(`b`, item);

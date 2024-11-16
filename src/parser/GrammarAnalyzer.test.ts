@@ -77,6 +77,14 @@ Deno.test({
   }
 });
 
+Deno.test({
+  name: "GrammarAnalyzer / Repetition with separator", fn() {
+    const grammar = g.repeat("foo", {sep: g(",")});
+    const nextPossibleActionsByLastGrammar = analyzer.analyzeGrammar(grammar);
+    assertEquals(stableInspect(nextPossibleActionsByLastGrammar), `{"<null>":[{"type":"shift","grammar":"#ref3"}],"<{\\"type\\":\\"repeat\\",\\"value\\":{\\"type\\":\\"string\\",\\"value\\":\\"foo\\"},\\"sep\\":{\\"type\\":\\"string\\",\\"value\\":\\",\\"}}>":[{"type":"accept","grammar":null}],"<\\"#ref1\\">":[{"type":"reduce","grammar":"#ref0"},{"type":"shift","grammar":"#ref8"}],"<\\"#ref2\\">":["#ref14"]}`);
+  }
+});
+
 Deno.test("GrammarAnalyzer / Empty string", () => {
   const grammar = g("");
   assertThrows(() => { analyzer.analyzeGrammar(grammar); }, Error, `Empty string grammar is not allowed. Use optional instead.`);

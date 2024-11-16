@@ -1,17 +1,42 @@
-import { Node } from "../dom/Node.ts";
+import type { INode, Node } from "../dom/Node.ts";
 import { stableInspect } from "../utils/inspect.ts";
 
 export type GrammarBase = {
   /** Simplifies the grammar node identification, for example for debugging */
   id?: string;
-  /** Allows to manage precedence between grammars (higher value will be shifted/reduced first) */
+
+  /**
+   * Allows to manage precedence between grammars (higher value will be shifted/reduced first).
+   * For exemple, multiplication should have a higher precedence than addition : (1 + (2 * 3))
+   */
   precedence?: number;
-  /** Allows to manage precedence between two occurrences of this grammar. Default is false (reduce first, then shift) */
+
+  /**
+   * Allows to manage precedence between two occurrences of this grammar.
+   * Default is false (reduce first, then shift).
+   * For exemple, a power operator (^) should be parsed right to left : (1 ^ (2 ^ 3))
+   * while an addition operator should be parsed left to right : ((1 + 2) + 3)
+   */
   rightToLeft?: boolean;
+
   /** Custom node class. Must extend Node. */
   nodeClass?: new (...args: Array<any>) => Node;
+
   /** Default text for this grammar */
   default?: () => string;
+
+  /**
+   * Defines an ordering value when inserting a new node using $.insert().
+   * The default is by alphabetic order on the full node text : $ => $.text()
+   */
+  order?: ($: INode) => string;
+
+  /**
+   * Defines an ordering by comparing two nodes.
+   * Used when inserting a new node using $.insert().
+   * The default uses the order() function on each node and compares their results using localeCompare().
+   */
+  compare?: ($a: INode, $b: INode) => number;
 };
 
 // Terminal grammar types

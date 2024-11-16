@@ -94,6 +94,33 @@ Deno.test({
     });
   }
 });
+Deno.test({
+  name: "Parser / Repetition with separator", async fn(t) {
+    const list = g.repeat(
+      g("a", { id: "item" }),
+      {
+        id: "list",
+        sep: g(",", { id: "sep" }),
+      }
+    );
+
+    await t.step("One repetition", () => {
+      const $ = parse(`a`, list);
+      assertEquals($.xml(), "<list><item>a</item></list>");
+      assertEquals($.text(), "a");
+    });
+
+    await t.step("Three repetitions", () => {
+      const $ = parse(`a,a,a`, list);
+      assertEquals($.xml(), "<list><item>a</item><sep>,</sep><item>a</item><sep>,</sep><item>a</item></list>");
+      assertEquals($.text(), "a,a,a");
+    });
+
+    await t.step("No repetition", () => {
+      assertThrows(() => { parse(``, list); }, Error, `\n^Expected one of [<item>]`);
+    });
+  }
+});
 
 Deno.test({
   name: "Parser / Infinite recursion", async fn(t) {
