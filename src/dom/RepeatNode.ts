@@ -1,6 +1,5 @@
 // deno-lint-ignore-file
-import { isRepeatGrammar } from "../deno-mod.ts";
-import { RepeatGrammar } from "../grammar/GrammarTypes.ts";
+import { isRepeatGrammar, RepeatGrammar } from "../grammar/GrammarTypes.ts";
 import { INode } from "./Node.ts";
 import { SearchableNode } from "./SearchableNode.ts";
 
