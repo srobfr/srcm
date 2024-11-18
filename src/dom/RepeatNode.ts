@@ -1,4 +1,5 @@
 // deno-lint-ignore-file
+import { isRepeatGrammar } from "../deno-mod.ts";
 import { RepeatGrammar } from "../grammar/GrammarTypes.ts";
 import { INode } from "./Node.ts";
 import { SearchableNode } from "./SearchableNode.ts";
@@ -66,5 +67,14 @@ export class RepeatNode extends SearchableNode {
         if ($separator) $lastItem.after($separator);
       }
     }
+  }
+
+  removeWithSep() {
+    if (isRepeatGrammar(this.parent?.grammar)) {
+      if (this.prev?.grammar && this.prev.grammar === this.parent.grammar.sep) this.prev.remove();
+      else if (this.next?.grammar && this.next.grammar === this.parent.grammar.sep) this.next.remove();
+    }
+
+    this.remove();
   }
 }

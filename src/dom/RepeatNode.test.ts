@@ -48,6 +48,9 @@ Deno.test({
 
     const $insertedC = $.findFirst($ => $.text() === "c");
     assertStrictEquals($insertedC, $c);
+
+    $c.removeWithSep();
+    assertEquals($.xml(), `a,b,d,e`);
   }
 });
 
