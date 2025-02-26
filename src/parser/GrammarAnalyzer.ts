@@ -54,21 +54,44 @@ export class GrammarAnalyzer {
   /** Recursively (depth-first) walks the provided grammar to extract contextualized grammars */
   private grammarToContextualizedGrammar(grammar: Grammar): Grammar {
     const alreadyVisited = new Map<Grammar, Grammar>();
+    const canMatchEmpty = new WeakSet<Grammar>();
     const walk = (grammar: Grammar): Grammar => {
       if (alreadyVisited.has(grammar)) return alreadyVisited.get(grammar)!; // Skips loops in graph by returning the same ref
 
-      const Grammar: Grammar = {...grammar, originalGrammar: grammar};
-      alreadyVisited.set(grammar, Grammar);
+      const contextualizedGrammar: Grammar = {...grammar, originalGrammar: grammar};
+      alreadyVisited.set(grammar, contextualizedGrammar);
 
       // Now we'll recursively walk the sub-grammars of the cloned grammar
-      if (isSequenceGrammar(Grammar) || isChoiceGrammar(Grammar)) {
-        Grammar.value = Grammar.value.map(walk);
+      if (isSequenceGrammar(contextualizedGrammar)) {
+        contextualizedGrammar.value = contextualizedGrammar.value.map(walk);
+
+        // If all sub-grammar can match an empty string, this grammar can also match an empty string
+        if (!contextualizedGrammar.value.find(subGrammar => !canMatchEmpty.has(subGrammar))) canMatchEmpty.add(contextualizedGrammar);
       }
-      else if (isRepeatGrammar(Grammar)) {
-        Grammar.value = walk(Grammar.value);
-        if (Grammar.sep) Grammar.sep = walk(Grammar.sep);
+      else if (isChoiceGrammar(contextualizedGrammar)) {
+        contextualizedGrammar.value = contextualizedGrammar.value.map(walk);
+
+        // If any sub-grammar can match an empty string, this grammar can also match an empty string
+        if (contextualizedGrammar.value.find(subGrammar => canMatchEmpty.has(subGrammar))) canMatchEmpty.add(contextualizedGrammar);
       }
-      else if (isNonTerminalGrammar(Grammar)) Grammar.value = walk(Grammar.value);
+      else if (isRepeatGrammar(contextualizedGrammar)) {
+        contextualizedGrammar.value = walk(contextualizedGrammar.value);
+        if (contextualizedGrammar.sep) contextualizedGrammar.sep = walk(contextualizedGrammar.sep);
+
+        if(canMatchEmpty.has(contextualizedGrammar.value) && (
+          contextualizedGrammar.sep === undefined || canMatchEmpty.has(contextualizedGrammar.sep)
+        )) {
+          // We're trying to repeat a grammar that can match an empty string, which could end in an infinite loop (or a massive performance leak)
+          console.log(grammar)
+          throw new Error(`Repeating an optional grammar is not allowed : ${inspectGrammar(grammar)}`);
+        }
+      }
+      else if (isOptionalGrammar(contextualizedGrammar)) {
+        contextualizedGrammar.value = walk(contextualizedGrammar.value);
+
+        // An optional grammar can match an empty string by definition
+        canMatchEmpty.add(contextualizedGrammar);
+      }
       else {
         // A terminal grammar. No need to walk the value.
       }
@@ -76,7 +99,7 @@ export class GrammarAnalyzer {
       // Depth walk if over, we remove the grammar from alreadyVisited so that non-recursive
       // usages will get another contextualized grammar instance.
       alreadyVisited.delete(grammar);
-      return Grammar;
+      return contextualizedGrammar;
     };
 
     return walk(grammar);

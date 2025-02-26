@@ -160,3 +160,20 @@ Deno.test({
     }
   }
 });
+
+Deno.test({
+  name: "Parser / Repeatable optional grammar", fn(t) {
+    const grammar = g.repeat(
+      g.or([
+        "foo",
+        g.optional("bar"),
+      ])
+    );
+
+    try {
+      parse(`foofoo`, grammar);
+    } catch (err: any) {
+      assertEquals(err.message, `Repeating an optional grammar is not allowed : (("foo"|("bar")?))+`);
+    }
+  }
+});

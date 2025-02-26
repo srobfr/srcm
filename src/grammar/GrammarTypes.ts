@@ -74,5 +74,9 @@ export const isGrammar = (value: any): value is Grammar => isTerminalGrammar(val
 export function inspectGrammar(grammar: Grammar | null): string {
   return grammar === null ? "<EOF>"
     : grammar.id ? `<${grammar.id}>`
-      : stableInspect(grammar.value);
+      : isRepeatGrammar(grammar) ? `(${inspectGrammar(grammar.value)})+`
+        : isOptionalGrammar(grammar) ? `(${inspectGrammar(grammar.value)})?`
+          : isChoiceGrammar(grammar) ? `(${grammar.value.map(inspectGrammar).join('|')})`
+            : isSequenceGrammar(grammar) ? `(${grammar.value.map(inspectGrammar).join(',')})`
+              : stableInspect(grammar.value);
 }
