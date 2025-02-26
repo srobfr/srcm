@@ -30,7 +30,7 @@ export class RepeatNode extends SearchableNode {
     const separatorDefault = sep?.default?.() ?? "";
     try {
       return this.parse(separatorDefault, sep);
-    } catch (err) {
+    } catch (err: any) {
       if (err.name === "SyntaxError") {
         throw new Error(`Separator grammar ${sep} does not match its default "${separatorDefault}"`, {
           cause: err,

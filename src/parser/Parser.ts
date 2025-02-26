@@ -8,7 +8,7 @@ import type { GrammarAnalyzer } from "./GrammarAnalyzer.ts";
 import { inspectContext } from "./inspectContext.ts";
 import { type Action, ActionType, type Context, type ParseError } from "./types.ts";
 
-class SyntaxError extends Error { name = "SyntaxError"; }
+class SyntaxError extends Error { override name = "SyntaxError"; }
 
 export class Parser {
   constructor(

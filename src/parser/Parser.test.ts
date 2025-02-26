@@ -1,10 +1,10 @@
-import { assertEquals } from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
-import { DomBuilder } from "../dom/DomBuilder.ts";
-import { GrammarDefinitionHelper } from "../grammar/GrammarDefinitionHelper.ts";
-import { DenoRuntimeAdapter } from "../runtimes/DenoRuntimeAdapter.ts";
-import { GrammarAnalyzer } from "./GrammarAnalyzer.ts";
-import { Parser } from "./Parser.ts";
-import { assertThrows } from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
+import {assertEquals} from "https://deno.land/std@0.223.0/assert/assert_equals.ts";
+import {DomBuilder} from "../dom/DomBuilder.ts";
+import {GrammarDefinitionHelper} from "../grammar/GrammarDefinitionHelper.ts";
+import {DenoRuntimeAdapter} from "../runtimes/DenoRuntimeAdapter.ts";
+import {GrammarAnalyzer} from "./GrammarAnalyzer.ts";
+import {Parser} from "./Parser.ts";
+import {assertThrows} from "https://deno.land/std@0.223.0/assert/assert_throws.ts";
 
 const runtimeAdapter = new DenoRuntimeAdapter();
 const grammarDefinitionHelper = new GrammarDefinitionHelper(runtimeAdapter);
@@ -147,14 +147,13 @@ Deno.test({
 });
 
 Deno.test({
-  ignore: true, // TODO Fix this
   name: "Parser / repeat bug on syntax error", fn(t) {
     const foo = g("foo", { id: "foo" });
     const grammar = g`(${g.repeat(foo)},${foo})`;
 
     try {
       parse(`(foo,foofoo)`, grammar);
-    } catch (err) {
+    } catch (err: any) {
       assertEquals(err.message, `Syntax error on line 1, columns 9:
 (foo,foofoo)
         ^Expected one of [")"]`);
