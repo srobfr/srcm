@@ -42,12 +42,12 @@ bump: fail-if-pending-changes test ## Tags & push a new version
 	git push $(origin) "v$(patchVersion)" $(publishOpts)
 
 npm-publish: test npm-build
-npm-publish: ## Builds and publish on npm
+npm-publish: ## Builds and publish on npm (pass publishOpts="--dry-run" for dry-run)
 	cd $(npmDir) && { npm diff | grep version -q; } && npm publish $(publishOpts)
 
 jsr-publish: test
-jsr-publish: ## Builds and publish on jsr.io
+jsr-publish: ## Builds and publish on jsr.io (pass publishOpts="--dry-run" for dry-run)
 	deno publish $(publishOpts)
 
 publish: npm-publish jsr-publish
-publish: ## build and publish on npm & jsr
+publish: ## build and publish on npm & jsr (pass publishOpts="--dry-run" for dry-run)
