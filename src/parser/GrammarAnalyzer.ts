@@ -82,7 +82,6 @@ export class GrammarAnalyzer {
           contextualizedGrammar.sep === undefined || canMatchEmpty.has(contextualizedGrammar.sep)
         )) {
           // We're trying to repeat a grammar that can match an empty string, which could end in an infinite loop (or a massive performance leak)
-          console.log(grammar)
           throw new Error(`Repeating an optional grammar is not allowed : ${inspectGrammar(grammar)}`);
         }
       }
