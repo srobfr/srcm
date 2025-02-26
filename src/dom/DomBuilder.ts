@@ -9,10 +9,10 @@ export class DomBuilder {
     const walk = (context: Context): Node => {
       const textContent = context.children ? null : code.substring(context.offset, context.offset + context.matchedCharsCount);
 
-      const nodeClass = context.grammar?.nodeClass ?? Node;
+      const nodeClass = (context.grammar?.originalGrammar ?? context.grammar)?.nodeClass ?? Node;
       if (nodeClass !== Node && !(nodeClass.prototype instanceof Node)) throw new Error(`nodeClass ${nodeClass} should extend Node`);
 
-      const $ = new nodeClass(context.grammar!, null, null, null, [], textContent, parse);
+      const $ = new nodeClass((context.grammar?.originalGrammar ?? context.grammar)!, null, null, null, [], textContent, parse);
 
       for (const $$ of (context.children ?? []).map(walk)) $.append($$);
 

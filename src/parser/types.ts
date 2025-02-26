@@ -1,6 +1,6 @@
-import { Grammar } from "../grammar/GrammarTypes.ts";
+import {Grammar} from "../grammar/GrammarTypes.ts";
 
-export const enum ActionType { SHIFT = "shift", REDUCE = "reduce", ACCEPT = "accept" };
+export const enum ActionType { SHIFT = "shift", REDUCE = "reduce", ACCEPT = "accept" }
 
 export type Action = { type: ActionType, grammar: Grammar | null, precedence?: number, rightToLeft?: boolean };
 

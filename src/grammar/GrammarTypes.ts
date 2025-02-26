@@ -37,6 +37,9 @@ export type GrammarBase = {
    * The default uses the order() function on each node and compares their results using localeCompare().
    */
   compare?: ($a: INode, $b: INode) => number;
+
+  /** Used in contextualized grammars, which are clones of an original grammar. This mechanisme is a way to optimize the parse tree. */
+  originalGrammar?: Grammar;
 };
 
 // Terminal grammar types

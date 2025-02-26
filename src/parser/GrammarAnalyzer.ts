@@ -1,9 +1,23 @@
-import { Grammar, isChoiceGrammar, isNonTerminalGrammar, isOptionalGrammar, isRegExpGrammar, isRepeatGrammar, isSequenceGrammar, isStringGrammar, isTerminalGrammar, SequenceGrammar, TerminalGrammar, TerminalOrOptionalGrammar } from "../grammar/GrammarTypes.ts";
+import {
+  Grammar,
+  inspectGrammar,
+  isChoiceGrammar,
+  isNonTerminalGrammar,
+  isOptionalGrammar,
+  isRegExpGrammar,
+  isRepeatGrammar,
+  isSequenceGrammar,
+  isStringGrammar,
+  isTerminalGrammar,
+  SequenceGrammar,
+  TerminalGrammar,
+  TerminalOrOptionalGrammar
+} from "../grammar/GrammarTypes.ts";
 import { RuntimeAdapter } from "../runtimes/types.ts";
 import { stableInspect } from "../utils/inspect.ts";
 import { mapSetAddBy } from "../utils/mapSetAddBy.ts";
 import { memoize } from "../utils/memoize.ts";
-import { Action, ActionType } from "./types.ts";
+import {Action, ActionType} from "./types.ts";
 
 type AnalysisContext = {
   action: (type: ActionType, grammar: Grammar | null, precedence?: number, rightToLeft?: boolean) => Action;
@@ -27,11 +41,45 @@ export class GrammarAnalyzer {
 
   /** Analyzes the root grammar to extract the required data for bottom-up parsing */
   public analyzeGrammar(grammar: Grammar): AnalysisContext["nextPossibleActionsByLastGrammar"] {
+    // Convert the grammar to a graph of GrammarRef
+    const contextualizedGrammar = this.grammarToContextualizedGrammar(grammar); // SROB
+
     // Find first terminals for each grammar
-    const firstPossibleTerminalsByGrammar = this.extractFirstPossibleTerminalsByGrammar(grammar);
-    const nextPossibleActionsByLastGrammar = this.extractNextPossibleActionsByLastGrammar(grammar, firstPossibleTerminalsByGrammar);
+    const firstPossibleTerminalsByGrammar = this.extractFirstPossibleTerminalsByGrammar(contextualizedGrammar);
+    const nextPossibleActionsByLastGrammar = this.extractNextPossibleActionsByLastGrammar(contextualizedGrammar, firstPossibleTerminalsByGrammar);
 
     return nextPossibleActionsByLastGrammar;
+  }
+
+  /** Recursively (depth-first) walks the provided grammar to extract contextualized grammars */
+  private grammarToContextualizedGrammar(grammar: Grammar): Grammar {
+    const alreadyVisited = new Map<Grammar, Grammar>();
+    const walk = (grammar: Grammar): Grammar => {
+      if (alreadyVisited.has(grammar)) return alreadyVisited.get(grammar)!; // Skips loops in graph by returning the same ref
+
+      const Grammar: Grammar = {...grammar, originalGrammar: grammar};
+      alreadyVisited.set(grammar, Grammar);
+
+      // Now we'll recursively walk the sub-grammars of the cloned grammar
+      if (isSequenceGrammar(Grammar) || isChoiceGrammar(Grammar)) {
+        Grammar.value = Grammar.value.map(walk);
+      }
+      else if (isRepeatGrammar(Grammar)) {
+        Grammar.value = walk(Grammar.value);
+        if (Grammar.sep) Grammar.sep = walk(Grammar.sep);
+      }
+      else if (isNonTerminalGrammar(Grammar)) Grammar.value = walk(Grammar.value);
+      else {
+        // A terminal grammar. No need to walk the value.
+      }
+
+      // Depth walk if over, we remove the grammar from alreadyVisited so that non-recursive
+      // usages will get another contextualized grammar instance.
+      alreadyVisited.delete(grammar);
+      return Grammar;
+    };
+
+    return walk(grammar);
   }
 
   /** Walks the grammar in a breadth-first walk, handling infinite recursion loops */
@@ -239,7 +287,7 @@ export class GrammarAnalyzer {
     // Look for grammar errors
     for (const [grammar, actions] of nextPossibleActionsByLastGrammar.entries()) {
       if (actions.size > 0) continue;
-      throw new Error(`No next action found for grammar : ${stableInspect(grammar?.id ?? grammar)}`);
+      throw new Error(`No next action found for grammar : ${stableInspect(grammar?.id ?? grammar?.originalGrammar ?? null)}`);
     }
 
     return nextPossibleActionsByLastGrammar;
